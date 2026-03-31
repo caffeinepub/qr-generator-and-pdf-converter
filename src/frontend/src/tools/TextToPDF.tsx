@@ -3,10 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { jsPDF } from "jspdf";
 import { Download, FileOutput, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+
+// jsPDF is loaded via CDN script tag in index.html (window.jspdf.jsPDF)
+function getJsPDF() {
+  const Cls = (window as any).jspdf?.jsPDF ?? (window as any).jsPDF;
+  if (!Cls) throw new Error("jsPDF library not loaded");
+  return Cls as new (options?: {
+    orientation?: string;
+    unit?: string;
+    format?: string | number[];
+  }) => {
+    setFont(name: string, style?: string): void;
+    setFontSize(size: number): void;
+    text(text: string | string[], x: number, y: number): void;
+    splitTextToSize(text: string, maxWidth: number): string[];
+    output(type: "blob"): Blob;
+  };
+}
 
 export default function TextToPDF() {
   const [title, setTitle] = useState("");
@@ -22,7 +38,8 @@ export default function TextToPDF() {
     }
     setLoading(true);
     try {
-      const pdf = new jsPDF();
+      const JsPDF = getJsPDF();
+      const pdf = new JsPDF();
       if (title.trim()) {
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(18);

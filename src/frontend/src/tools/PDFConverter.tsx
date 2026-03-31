@@ -1,9 +1,35 @@
 import ReviewModal from "@/components/ReviewModal";
 import { Button } from "@/components/ui/button";
-import { jsPDF } from "jspdf";
 import { Download, FileText, Loader2, Upload, X } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+
+// jsPDF is loaded via CDN script tag in index.html (window.jspdf.jsPDF)
+function getJsPDF() {
+  const Cls = (window as any).jspdf?.jsPDF ?? (window as any).jsPDF;
+  if (!Cls) throw new Error("jsPDF library not loaded");
+  return Cls as new (options?: {
+    orientation?: string;
+    unit?: string;
+    format?: string | number[];
+  }) => {
+    addImage(
+      imageData: string,
+      format: string,
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+    ): void;
+    addPage(): void;
+    setFont(name: string, style?: string): void;
+    setFontSize(size: number): void;
+    text(text: string | string[], x: number, y: number): void;
+    splitTextToSize(text: string, maxWidth: number): string[];
+    output(type: "blob"): Blob;
+    internal: { pageSize: { getWidth(): number; getHeight(): number } };
+  };
+}
 
 interface FileEntry {
   id: string;
@@ -39,7 +65,8 @@ export default function PDFConverter() {
     }
     setLoading(true);
     try {
-      const pdf = new jsPDF();
+      const JsPDF = getJsPDF();
+      const pdf = new JsPDF();
       let first = true;
       for (const entry of files) {
         if (!first) pdf.addPage();

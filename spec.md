@@ -1,36 +1,38 @@
 # QR Generator and PDF Converter
 
 ## Current State
-Live site with 5 browser-based tools: QR Code Maker, PDF Converter, PDF to Image, Text to PDF, Image to PDF. Hero section has generic heading "Create & Convert Easily" with a short paragraph. Tool cards use "Open Tool" buttons. Has a basic "How It Works" section (3 steps) and a feature strip (3 items). Footer has Tools, Navigation, Contact columns but no About Us / Privacy Policy / Terms pages. No "Why Choose Us" section. No SEO content section. index.html has no meaningful title, description, or OG meta tags.
+Full-stack app with React/TypeScript frontend and Motoko backend. The site has five browser-based tools: QR Code Maker, PDF Converter, PDF to Image, Text to PDF, Image to PDF. Layout includes a Hero section, Tools grid, Why Choose Us, How It Works, Feature Strip, Contact form, SEO accordion, and Footer. Styling uses OKLCH CSS variables, Plus Jakarta Sans + Bricolage Grotesque fonts, Tailwind CSS, and shadcn/ui components. Current background is a light gray (`--background: 0.965 0.012 245`, roughly #F3F6F9), sections alternate between `bg-background`, `bg-card`, and `bg-muted`.
 
 ## Requested Changes (Diff)
 
 ### Add
-- index.html: `<title>`, meta description, meta keywords, og:title, og:description, og:type, og:url tags for SEO
-- Hero: descriptive paragraph with 4 bullet points (generate QR from text/URLs/images; convert text/images to PDF; no downloads; 100% browser-based)
-- "Why Choose Us" section with 5 feature cards: Fast processing, Easy to use, 100% privacy, Free tools, Works on all devices
-- SEO content section with 3 expandable or static text blocks: "What is a QR Code Generator?", "What is a PDF Converter?", "Benefits of Using Online Tools"
-- Footer links: About Us, Contact, Privacy Policy, Terms and Conditions (as anchor links or modal pages)
+- Light blue to white gradient for the page background (#e0f2ff → #ffffff, top to bottom)
+- Soft box-shadow on tool cards and section cards
+- Prominent solid-blue buttons with darker-blue hover state
 
 ### Modify
-- Hero h1: change to "Free QR Code Generator & PDF Converter Online – Fast, Secure & Easy"
-- Tool card buttons: QR Code Maker → "Generate QR Now"; PDF Converter → "Convert to PDF"; PDF to Image → "Convert PDF to Image"; Text to PDF → "Convert Text to PDF"; Image to PDF → "Convert Image to PDF"
-- "How It Works" steps: update text to Step 1: Upload or Enter Data, Step 2: Convert Instantly, Step 3: Download or Share
-- Overall spacing, fonts, and layout refinements for premium look
+- `index.css`: Update `--background` to pure white (1 0 0), set `body` background to the light-blue-to-white gradient using a CSS linear-gradient. Ensure `--foreground` is near-black for readability. Update `--muted` to a very light off-white so alternating sections remain visible on the gradient.
+- `App.tsx`: Replace section background classes (`bg-background`, `bg-muted`, `bg-card`) so sections feel cohesive on the light gradient. Hero section should use the gradient (remove its own bg, let the page gradient show). Cards (tools, why choose us, how-it-works steps, feature strip, accordion items) should be pure white with soft shadow and rounded corners. Increase vertical padding/spacing between sections for an airy layout.
+- `App.tsx`: Buttons — ensure `Button` uses the solid primary blue with a slightly darker blue on hover. No outline secondary button changes needed beyond current.
+- `tailwind.config.js`: Add or update `boxShadow.card` for softer, more prominent shadow. Ensure gradient utilities are usable if needed.
 
 ### Remove
-- Nothing removed
+- Heavy animations — keep only simple `opacity+y` entrance animations. Remove or reduce any `scale` or staggered delay animations for performance.
 
 ## Implementation Plan
-1. Update `index.html`: add meaningful title, meta description, meta keywords, OG meta tags
+1. Update `index.css`:
+   - Set `--background` and `--card` both to white (1 0 0)
+   - Add `body { background: linear-gradient(to bottom, #e0f2ff, #ffffff); background-attachment: fixed; }` (or equivalent using CSS variables)
+   - Keep `--foreground` as near-black; ensure `--muted-foreground` is dark enough (≥ 0.45 lightness in OKLCH) for body text on white
+   - Set `--muted` to a very subtle light blue-gray so `bg-muted` sections are distinguishable
 2. Update `App.tsx`:
-   a. Hero h1 text update
-   b. Add description bullet points below existing paragraph
-   c. Update TOOLS button labels per tool (use per-tool button text, not generic)
-   d. Update HOW_IT_WORKS step descriptions to match requested text
-   e. Add WHY_CHOOSE_US data array (5 items with icons)
-   f. Insert "Why Choose Us" section after tools grid or after how-it-works
-   g. Add SEO_CONTENT array (3 items: What is QR, What is PDF Converter, Benefits)
-   h. Add SEO content section before footer
-   i. Update footer: add About Us, Privacy Policy, Terms and Conditions as modal-based or inline pages
-   j. Improve overall spacing, typography, and layout for AdSense-ready premium look
+   - Change outer `div` background from `bg-background` to transparent (let body gradient show)
+   - Remove or lighten section-level background overrides (hero, tools, why-choose-us, how-it-works, contact, SEO sections) so the page gradient is visible throughout
+   - Alternating sections can use a slightly different white/off-white card-like wrapper for visual separation
+   - Cards: add `shadow-md` or custom shadow, `rounded-2xl`, white background explicitly where needed
+   - Buttons: verify `Button` primary variant is solid blue; add `hover:bg-blue-700` or equivalent Tailwind class if default hover is not prominent enough
+   - Increase `py-20` to `py-24` on major sections for breathing room
+   - Simplify motion animations — keep `opacity+y` only, remove scale transforms
+3. Update `tailwind.config.js`:
+   - Update `boxShadow.card` to a softer, more noticeable value: `0 4px 16px 0 rgba(30,136,229,0.10), 0 1px 4px 0 rgba(0,0,0,0.06)`
+   - Update `boxShadow.card-hover` to be more prominent on hover

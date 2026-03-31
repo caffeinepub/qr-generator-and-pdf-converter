@@ -1,6 +1,5 @@
 import ReviewModal from "@/components/ReviewModal";
 import { Button } from "@/components/ui/button";
-import { jsPDF } from "jspdf";
 import {
   Download,
   GripVertical,
@@ -11,6 +10,29 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+
+// jsPDF is loaded via CDN script tag in index.html (window.jspdf.jsPDF)
+function getJsPDF() {
+  const Cls = (window as any).jspdf?.jsPDF ?? (window as any).jsPDF;
+  if (!Cls) throw new Error("jsPDF library not loaded");
+  return Cls as new (options?: {
+    orientation?: string;
+    unit?: string;
+    format?: string | number[];
+  }) => {
+    addImage(
+      imageData: string,
+      format: string,
+      x: number,
+      y: number,
+      width: number,
+      height: number,
+    ): void;
+    addPage(): void;
+    output(type: "blob"): Blob;
+    internal: { pageSize: { getWidth(): number; getHeight(): number } };
+  };
+}
 
 interface PreviewEntry {
   id: string;
@@ -55,7 +77,8 @@ export default function ImageToPDF() {
     }
     setLoading(true);
     try {
-      const pdf = new jsPDF();
+      const JsPDF = getJsPDF();
+      const pdf = new JsPDF();
       let first = true;
       for (const entry of entries) {
         if (!first) pdf.addPage();
@@ -187,7 +210,9 @@ export default function ImageToPDF() {
         )}
         {loading
           ? "Creating PDF..."
-          : `Merge ${entries.length > 0 ? entries.length : ""} ${entries.length !== 1 ? "Files" : "File"} into PDF`}
+          : `Merge ${entries.length > 0 ? entries.length : ""} ${
+              entries.length !== 1 ? "Files" : "File"
+            } into PDF`}
       </Button>
 
       {loading && (

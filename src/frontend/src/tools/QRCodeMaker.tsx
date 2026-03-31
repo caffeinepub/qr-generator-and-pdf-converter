@@ -4,9 +4,29 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Download, Link, Loader2, QrCode, Share2, Type } from "lucide-react";
-import QRCode from "qrcode";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+
+// QRCode is loaded via CDN script tag in index.html (window.QRCode)
+function getQRCode() {
+  const lib = (window as any).QRCode;
+  if (!lib) throw new Error("QRCode library not loaded");
+  return lib as {
+    toDataURL(
+      text: string,
+      options?: {
+        width?: number;
+        margin?: number;
+        color?: { dark?: string; light?: string };
+      },
+    ): Promise<string>;
+    toCanvas(
+      canvas: HTMLCanvasElement,
+      text: string,
+      options?: object,
+    ): Promise<void>;
+  };
+}
 
 export default function QRCodeMaker() {
   const [inputText, setInputText] = useState("");
@@ -22,6 +42,7 @@ export default function QRCodeMaker() {
     }
     setLoading(true);
     try {
+      const QRCode = getQRCode();
       const url = await QRCode.toDataURL(inputText, {
         width: 300,
         margin: 2,

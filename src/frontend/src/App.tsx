@@ -243,12 +243,12 @@ export default function App() {
   const ActiveToolComponent = activeTool ? ToolComponents[activeTool] : null;
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div className="min-h-screen font-sans">
       <Toaster position="top-right" />
 
       {/* Navbar */}
       <header
-        className="sticky top-0 z-50 bg-card border-b border-border shadow-xs"
+        className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border shadow-xs"
         data-ocid="nav.panel"
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
@@ -313,7 +313,7 @@ export default function App() {
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="md:hidden border-t border-border bg-card overflow-hidden"
+              className="md:hidden border-t border-border bg-white overflow-hidden"
             >
               <div className="px-4 py-4 flex flex-col gap-3">
                 {(["home", "tools", "contact"] as const).map((s) => (
@@ -335,10 +335,7 @@ export default function App() {
 
       <main>
         {/* ── Hero Section ── */}
-        <section
-          id="home"
-          className="bg-gradient-to-br from-background to-muted py-20 lg:py-28"
-        >
+        <section id="home" className="py-24 lg:py-32">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <motion.div
@@ -377,7 +374,7 @@ export default function App() {
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="lg"
-                    className="rounded-full gap-2"
+                    className="rounded-full gap-2 hover:opacity-90"
                     onClick={() => scrollTo("tools")}
                     data-ocid="hero.primary_button"
                   >
@@ -397,8 +394,8 @@ export default function App() {
 
               {/* Hero illustration */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
                 className="hidden lg:block"
               >
@@ -409,7 +406,7 @@ export default function App() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.3 + i * 0.1 }}
-                      className={`bg-card rounded-2xl p-4 shadow-card flex items-center gap-3 ${
+                      className={`bg-white rounded-2xl p-4 shadow-card flex items-center gap-3 ${
                         i === 4 ? "col-span-2" : ""
                       }`}
                     >
@@ -418,7 +415,9 @@ export default function App() {
                       >
                         <tool.icon className="w-5 h-5" />
                       </div>
-                      <span className="text-sm font-medium">{tool.title}</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {tool.title}
+                      </span>
                     </motion.div>
                   ))}
                 </div>
@@ -428,7 +427,7 @@ export default function App() {
         </section>
 
         {/* ── Tools Grid Section ── */}
-        <section id="tools" className="py-20 bg-card">
+        <section id="tools" className="py-24 bg-white/80 backdrop-blur-sm">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -456,7 +455,7 @@ export default function App() {
                   data-ocid={`tools.item.${i + 1}` as never}
                 >
                   <div
-                    className={`bg-card border rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all cursor-pointer ${
+                    className={`bg-white border rounded-2xl p-6 shadow-card hover:shadow-card-hover transition-all cursor-pointer ${
                       activeTool === tool.id
                         ? "border-primary ring-2 ring-primary/20"
                         : "border-border hover:border-primary/30"
@@ -467,7 +466,7 @@ export default function App() {
                     >
                       <tool.icon className="w-6 h-6" />
                     </div>
-                    <h3 className="font-display font-bold text-base mb-2">
+                    <h3 className="font-display font-bold text-base mb-2 text-foreground">
                       {tool.title}
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
@@ -475,7 +474,7 @@ export default function App() {
                     </p>
                     <Button
                       size="sm"
-                      className="rounded-full gap-1 w-full"
+                      className="rounded-full gap-1 w-full hover:opacity-90"
                       onClick={(e) => {
                         e.stopPropagation();
                         toggleTool(tool.id);
@@ -504,7 +503,7 @@ export default function App() {
                   className="overflow-hidden"
                 >
                   <div
-                    className="bg-background border border-border rounded-2xl p-6 sm:p-8 shadow-card"
+                    className="bg-white border border-border rounded-2xl p-6 sm:p-8 shadow-card"
                     data-ocid="tools.panel"
                   >
                     <ActiveToolComponent />
@@ -516,7 +515,7 @@ export default function App() {
         </section>
 
         {/* ── Why Choose Us ── */}
-        <section className="py-20 bg-background">
+        <section className="py-24">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -541,7 +540,7 @@ export default function App() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  className="bg-card border border-border rounded-2xl p-5 text-center shadow-card hover:shadow-card-hover transition-all"
+                  className="bg-white border border-border rounded-2xl p-5 text-center shadow-card hover:shadow-card-hover transition-all"
                   data-ocid={`why.item.${i + 1}` as never}
                 >
                   <div
@@ -549,7 +548,7 @@ export default function App() {
                   >
                     <item.icon className="w-6 h-6" />
                   </div>
-                  <h3 className="font-display font-bold text-sm mb-1.5">
+                  <h3 className="font-display font-bold text-sm mb-1.5 text-foreground">
                     {item.title}
                   </h3>
                   <p className="text-xs text-muted-foreground leading-relaxed">
@@ -562,7 +561,7 @@ export default function App() {
         </section>
 
         {/* ── How It Works ── */}
-        <section className="py-20 bg-muted">
+        <section className="py-24 bg-white/60 backdrop-blur-sm border-y border-border/50">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -593,7 +592,7 @@ export default function App() {
                   <span className="text-xs font-bold text-primary/60 tracking-widest uppercase">
                     Step {step.step}
                   </span>
-                  <h3 className="font-display font-bold text-lg mt-1 mb-2">
+                  <h3 className="font-display font-bold text-lg mt-1 mb-2 text-foreground">
                     {step.title}
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
@@ -606,7 +605,7 @@ export default function App() {
         </section>
 
         {/* ── Feature Strip ── */}
-        <section className="py-16 bg-card border-y border-border">
+        <section className="py-16 bg-white/90 border-y border-blue-100">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="grid sm:grid-cols-3 gap-6">
               {FEATURES.map((feat) => (
@@ -621,7 +620,7 @@ export default function App() {
                     <feat.icon className="w-5 h-5 text-primary" />
                   </div>
                   <div>
-                    <h4 className="font-display font-bold text-base mb-1">
+                    <h4 className="font-display font-bold text-base mb-1 text-foreground">
                       {feat.title}
                     </h4>
                     <p className="text-sm text-muted-foreground">{feat.desc}</p>
@@ -633,7 +632,7 @@ export default function App() {
         </section>
 
         {/* ── Contact Section ── */}
-        <section id="contact" className="py-20 bg-background">
+        <section id="contact" className="py-24 bg-transparent">
           <div className="max-w-xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -649,71 +648,75 @@ export default function App() {
               </p>
             </motion.div>
 
-            <motion.form
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              onSubmit={handleContactSubmit}
-              className="space-y-5"
+              className="bg-white rounded-2xl shadow-card p-6 sm:p-8"
             >
-              <div>
-                <Label htmlFor="contact-name" className="mb-1.5 block">
-                  Name
-                </Label>
-                <Input
-                  id="contact-name"
-                  placeholder="Your name"
-                  value={contactForm.name}
-                  onChange={(e) =>
-                    setContactForm((p) => ({ ...p, name: e.target.value }))
-                  }
-                  data-ocid="contact.input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="contact-email" className="mb-1.5 block">
-                  Email
-                </Label>
-                <Input
-                  id="contact-email"
-                  type="email"
-                  placeholder="your@email.com"
-                  value={contactForm.email}
-                  onChange={(e) =>
-                    setContactForm((p) => ({ ...p, email: e.target.value }))
-                  }
-                  data-ocid="contact.input"
-                />
-              </div>
-              <div>
-                <Label htmlFor="contact-message" className="mb-1.5 block">
-                  Message
-                </Label>
-                <Textarea
-                  id="contact-message"
-                  placeholder="How can we help?"
-                  rows={5}
-                  value={contactForm.message}
-                  onChange={(e) =>
-                    setContactForm((p) => ({ ...p, message: e.target.value }))
-                  }
-                  data-ocid="contact.textarea"
-                />
-              </div>
-              <Button
-                type="submit"
-                className="rounded-full w-full"
-                disabled={contactLoading}
-                data-ocid="contact.submit_button"
-              >
-                {contactLoading ? "Sending..." : "Send Message"}
-              </Button>
-            </motion.form>
+              <form onSubmit={handleContactSubmit} className="space-y-5">
+                <div>
+                  <Label htmlFor="contact-name" className="mb-1.5 block">
+                    Name
+                  </Label>
+                  <Input
+                    id="contact-name"
+                    placeholder="Your name"
+                    value={contactForm.name}
+                    onChange={(e) =>
+                      setContactForm((p) => ({ ...p, name: e.target.value }))
+                    }
+                    data-ocid="contact.input"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contact-email" className="mb-1.5 block">
+                    Email
+                  </Label>
+                  <Input
+                    id="contact-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={contactForm.email}
+                    onChange={(e) =>
+                      setContactForm((p) => ({ ...p, email: e.target.value }))
+                    }
+                    data-ocid="contact.input"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contact-message" className="mb-1.5 block">
+                    Message
+                  </Label>
+                  <Textarea
+                    id="contact-message"
+                    placeholder="How can we help?"
+                    rows={5}
+                    value={contactForm.message}
+                    onChange={(e) =>
+                      setContactForm((p) => ({
+                        ...p,
+                        message: e.target.value,
+                      }))
+                    }
+                    data-ocid="contact.textarea"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="rounded-full w-full hover:opacity-90"
+                  disabled={contactLoading}
+                  data-ocid="contact.submit_button"
+                >
+                  {contactLoading ? "Sending..." : "Send Message"}
+                </Button>
+              </form>
+            </motion.div>
           </div>
         </section>
 
         {/* ── SEO Content Section ── */}
-        <section className="py-20 bg-muted border-t border-border">
+        <section className="py-24 bg-white/70 backdrop-blur-sm border-t border-blue-100">
           <div className="max-w-3xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -740,7 +743,7 @@ export default function App() {
                   <AccordionItem
                     key={item.value}
                     value={item.value}
-                    className="bg-card border border-border rounded-xl px-5 shadow-card data-[state=open]:border-primary/30"
+                    className="bg-white border border-border rounded-xl px-5 shadow-card data-[state=open]:border-primary/30"
                   >
                     <AccordionTrigger className="font-display font-semibold text-base text-foreground hover:no-underline py-4">
                       {item.trigger}

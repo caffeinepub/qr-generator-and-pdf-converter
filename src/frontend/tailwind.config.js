@@ -82,8 +82,9 @@ export default {
         "2xl": "1.25rem",
       },
       boxShadow: {
-        card: "0 2px 8px 0 rgba(30,136,229,0.07), 0 1px 2px 0 rgba(0,0,0,0.04)",
-        "card-hover": "0 8px 24px 0 rgba(30,136,229,0.13), 0 2px 4px 0 rgba(0,0,0,0.06)",
+        card: "0 4px 16px 0 rgba(30,136,229,0.10), 0 1px 4px 0 rgba(0,0,0,0.05)",
+        "card-hover":
+          "0 8px 32px 0 rgba(30,136,229,0.16), 0 2px 8px 0 rgba(0,0,0,0.07)",
         xs: "0 1px 2px 0 rgba(0,0,0,0.05)",
       },
       keyframes: {

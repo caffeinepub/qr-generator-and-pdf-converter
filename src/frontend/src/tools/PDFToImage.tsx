@@ -4,6 +4,32 @@ import { Download, ImageIcon, Loader2, Upload } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
+// pdfjs-dist is loaded via CDN script tag in index.html (window.pdfjsLib)
+function getPdfjsLib() {
+  const lib = (window as any).pdfjsLib;
+  if (!lib) throw new Error("PDF.js library not loaded");
+  return lib as {
+    version: string;
+    GlobalWorkerOptions: { workerSrc: string };
+    getDocument(src: { data: ArrayBuffer }): {
+      promise: Promise<{
+        numPages: number;
+        getPage(n: number): Promise<{
+          getViewport(opts: { scale: number }): {
+            width: number;
+            height: number;
+          };
+          render(params: {
+            canvas?: HTMLCanvasElement;
+            canvasContext: CanvasRenderingContext2D;
+            viewport: { width: number; height: number };
+          }): { promise: Promise<void> };
+        }>;
+      }>;
+    };
+  };
+}
+
 export default function PDFToImage() {
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>([]);
@@ -30,8 +56,9 @@ export default function PDFToImage() {
     }
     setLoading(true);
     try {
-      const pdfjsLib = await import("pdfjs-dist");
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+      const pdfjsLib = getPdfjsLib();
+      pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
       const arrayBuffer = await pdfFile.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
