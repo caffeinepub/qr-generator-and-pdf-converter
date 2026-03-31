@@ -4,6 +4,7 @@ import Text "mo:core/Text";
 import Nat "mo:core/Nat";
 import Array "mo:core/Array";
 import Time "mo:core/Time";
+import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
 
@@ -13,12 +14,6 @@ actor {
     rating : Nat;
     comment : Text;
     timestamp : Int;
-  };
-
-  module Review {
-    public func compare(review1 : Review, review2 : Review) : Order.Order {
-      Text.compare(review1.toolId, review2.toolId);
-    };
   };
 
   let reviews = Map.empty<Nat, Review>();
@@ -54,10 +49,13 @@ actor {
   };
 
   public query ({ caller }) func getAllReviewsByTool(toolId : Text) : async [Review] {
-    reviews.values().toArray().filter(
-      func(review) {
+    let filtered = reviews.values().toArray().filter(
+      func(review : Review) : Bool {
         Text.equal(review.toolId, toolId);
       }
-    ).sort();
+    );
+    filtered.sort(func(a : Review, b : Review) : Order.Order {
+      Int.compare(b.timestamp, a.timestamp);
+    });
   };
 };
