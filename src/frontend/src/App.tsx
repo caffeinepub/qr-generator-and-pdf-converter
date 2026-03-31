@@ -1,4 +1,18 @@
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Toaster } from "@/components/ui/sonner";
@@ -10,6 +24,7 @@ import QRCodeMaker from "@/tools/QRCodeMaker";
 import TextToPDF from "@/tools/TextToPDF";
 import {
   ArrowRight,
+  BadgeCheck,
   CheckCircle,
   ChevronDown,
   Download,
@@ -17,12 +32,16 @@ import {
   FileText,
   ImageIcon,
   Images,
+  Lock,
   Menu,
+  MousePointer2,
   QrCode,
   Share2,
   Shield,
+  Smartphone,
   Upload,
   X,
+  Zap,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
@@ -36,6 +55,7 @@ const TOOLS = [
     description:
       "Generate QR codes from URLs, text, or any content. Download and share instantly.",
     color: "bg-blue-50 text-blue-600",
+    buttonLabel: "Generate QR Now",
   },
   {
     id: "pdf-converter",
@@ -44,6 +64,7 @@ const TOOLS = [
     description:
       "Convert images and text files into professional PDF documents in seconds.",
     color: "bg-purple-50 text-purple-600",
+    buttonLabel: "Convert to PDF",
   },
   {
     id: "pdf-to-image",
@@ -52,6 +73,7 @@ const TOOLS = [
     description:
       "Transform every page of your PDF into high-quality PNG images.",
     color: "bg-green-50 text-green-600",
+    buttonLabel: "Convert PDF to Image",
   },
   {
     id: "text-to-pdf",
@@ -60,6 +82,7 @@ const TOOLS = [
     description:
       "Paste any plain text and convert it to a clean, formatted PDF document.",
     color: "bg-orange-50 text-orange-600",
+    buttonLabel: "Convert Text to PDF",
   },
   {
     id: "image-to-pdf",
@@ -68,6 +91,7 @@ const TOOLS = [
     description:
       "Merge multiple images into a single, organized PDF file with one click.",
     color: "bg-pink-50 text-pink-600",
+    buttonLabel: "Convert Image to PDF",
   },
 ];
 
@@ -75,20 +99,53 @@ const HOW_IT_WORKS = [
   {
     icon: Upload,
     step: "01",
-    title: "Upload or Input",
-    desc: "Select your file, paste your text, or enter a URL to get started.",
+    title: "Upload or Enter Data",
+    desc: "Select a file, paste your text, or enter a URL to get started.",
   },
   {
     icon: CheckCircle,
     step: "02",
-    title: "Convert",
-    desc: "Our tool processes everything instantly in your browser — no uploads to servers.",
+    title: "Convert Instantly",
+    desc: "Our tool processes everything instantly in your browser — no uploads to servers, no waiting.",
   },
   {
     icon: Download,
     step: "03",
-    title: "Download & Share",
+    title: "Download or Share",
     desc: "Download your result or share it directly with friends and colleagues.",
+  },
+];
+
+const WHY_CHOOSE_US = [
+  {
+    icon: Zap,
+    title: "Fast Processing",
+    desc: "Instant results with zero wait time.",
+    color: "bg-yellow-50 text-yellow-600",
+  },
+  {
+    icon: MousePointer2,
+    title: "Easy to Use",
+    desc: "No technical skills needed. Just input and convert.",
+    color: "bg-blue-50 text-blue-600",
+  },
+  {
+    icon: Lock,
+    title: "100% Privacy",
+    desc: "Your files never leave your device. All processing is local.",
+    color: "bg-green-50 text-green-600",
+  },
+  {
+    icon: BadgeCheck,
+    title: "Free Tools",
+    desc: "Completely free with no hidden fees or subscriptions.",
+    color: "bg-purple-50 text-purple-600",
+  },
+  {
+    icon: Smartphone,
+    title: "Works on All Devices",
+    desc: "Fully responsive on desktop, tablet, and mobile.",
+    color: "bg-pink-50 text-pink-600",
   },
 ];
 
@@ -107,6 +164,27 @@ const FEATURES = [
     icon: Shield,
     title: "100% Private",
     desc: "All processing happens in your browser. Your files never leave your device.",
+  },
+];
+
+const SEO_CONTENT = [
+  {
+    value: "qr-code-generator",
+    trigger: "What is a QR Code Generator?",
+    content:
+      "A QR code generator is an online tool that converts text, URLs, or data into a scannable QR code image. QR codes can be read by any smartphone camera and are widely used for sharing links, contact info, and more. Our free QR code generator works entirely in your browser with no registration required.",
+  },
+  {
+    value: "pdf-converter",
+    trigger: "What is a PDF Converter?",
+    content:
+      "A PDF converter is a tool that transforms various file formats—like images and plain text—into the universally readable PDF format. PDFs preserve formatting across all devices and operating systems, making them ideal for sharing documents professionally. Our online PDF converter requires no software installation.",
+  },
+  {
+    value: "benefits",
+    trigger: "Benefits of Using Online Tools",
+    content:
+      "Online tools like ours offer several advantages: they are accessible from any device with a browser, require no installation or signup, process data privately in your browser, and are completely free. Whether you need to generate a QR code or convert files to PDF, our tools deliver instant results securely.",
   },
 ];
 
@@ -130,6 +208,8 @@ export default function App() {
     message: "",
   });
   const [contactLoading, setContactLoading] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
 
   const scrollTo = (section: "home" | "tools" | "contact") => {
     setActiveSection(section);
@@ -254,7 +334,7 @@ export default function App() {
       </header>
 
       <main>
-        {/* Hero Section */}
+        {/* ── Hero Section ── */}
         <section
           id="home"
           className="bg-gradient-to-br from-background to-muted py-20 lg:py-28"
@@ -269,16 +349,31 @@ export default function App() {
                 <span className="inline-block bg-primary/10 text-primary text-xs font-semibold px-3 py-1.5 rounded-full mb-6">
                   Free Online Tools
                 </span>
-                <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-foreground leading-tight mb-6">
-                  Create &amp; Convert
-                  <br />
-                  <span className="text-primary">Easily</span>
+                <h1 className="font-display font-extrabold text-3xl sm:text-4xl lg:text-5xl text-foreground leading-tight mb-6">
+                  Free QR Code Generator &amp; PDF Converter Online –{" "}
+                  <span className="text-primary">Fast, Secure &amp; Easy</span>
                 </h1>
-                <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
+                <p className="text-muted-foreground text-lg mb-6 leading-relaxed">
                   Generate QR codes, convert PDFs, transform images — all in one
-                  place. No signup required. 100% free and works in your
-                  browser.
+                  place. No signup required. 100% free and works entirely in
+                  your browser.
                 </p>
+
+                {/* 4-bullet feature list */}
+                <ul className="space-y-2.5 mb-8">
+                  {[
+                    "Generate QR codes from text, URLs, and images",
+                    "Convert text and images into PDF",
+                    "No downloads required",
+                    "100% secure – everything runs in your browser",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <CheckCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                      <span className="text-sm text-foreground">{item}</span>
+                    </li>
+                  ))}
+                </ul>
+
                 <div className="flex flex-wrap gap-3">
                   <Button
                     size="lg"
@@ -332,7 +427,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* Tools Grid Section */}
+        {/* ── Tools Grid Section ── */}
         <section id="tools" className="py-20 bg-card">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div
@@ -387,7 +482,7 @@ export default function App() {
                       }}
                       data-ocid={`tools.button.${i + 1}` as never}
                     >
-                      {activeTool === tool.id ? "Close Tool" : "Open Tool"}
+                      {activeTool === tool.id ? "Close Tool" : tool.buttonLabel}
                       {activeTool !== tool.id && (
                         <ChevronDown className="w-3 h-3" />
                       )}
@@ -420,8 +515,54 @@ export default function App() {
           </div>
         </section>
 
-        {/* How It Works */}
+        {/* ── Why Choose Us ── */}
         <section className="py-20 bg-background">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-14"
+            >
+              <h2 className="font-display font-bold text-3xl sm:text-4xl text-foreground mb-4">
+                Why Choose Us
+              </h2>
+              <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+                Everything you need, nothing you don't. Built for speed,
+                privacy, and simplicity.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-5">
+              {WHY_CHOOSE_US.map((item, i) => (
+                <motion.div
+                  key={item.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  className="bg-card border border-border rounded-2xl p-5 text-center shadow-card hover:shadow-card-hover transition-all"
+                  data-ocid={`why.item.${i + 1}` as never}
+                >
+                  <div
+                    className={`w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3 ${item.color}`}
+                  >
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <h3 className="font-display font-bold text-sm mb-1.5">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    {item.desc}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── How It Works ── */}
+        <section className="py-20 bg-muted">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -464,8 +605,8 @@ export default function App() {
           </div>
         </section>
 
-        {/* Feature Strip */}
-        <section className="py-16 bg-muted">
+        {/* ── Feature Strip ── */}
+        <section className="py-16 bg-card border-y border-border">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
             <div className="grid sm:grid-cols-3 gap-6">
               {FEATURES.map((feat) => (
@@ -491,8 +632,8 @@ export default function App() {
           </div>
         </section>
 
-        {/* Contact Section */}
-        <section id="contact" className="py-20 bg-card">
+        {/* ── Contact Section ── */}
+        <section id="contact" className="py-20 bg-background">
           <div className="max-w-xl mx-auto px-4 sm:px-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -570,13 +711,57 @@ export default function App() {
             </motion.form>
           </div>
         </section>
+
+        {/* ── SEO Content Section ── */}
+        <section className="py-20 bg-muted border-t border-border">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <h2 className="font-display font-bold text-3xl sm:text-4xl text-foreground mb-4">
+                Learn More About Our Tools
+              </h2>
+              <p className="text-muted-foreground text-lg">
+                Understand how our tools work and why they're the best choice
+                for your needs.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+            >
+              <Accordion type="single" collapsible className="w-full space-y-3">
+                {SEO_CONTENT.map((item) => (
+                  <AccordionItem
+                    key={item.value}
+                    value={item.value}
+                    className="bg-card border border-border rounded-xl px-5 shadow-card data-[state=open]:border-primary/30"
+                  >
+                    <AccordionTrigger className="font-display font-semibold text-base text-foreground hover:no-underline py-4">
+                      {item.trigger}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-muted-foreground leading-relaxed pb-4">
+                      {item.content}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </motion.div>
+          </div>
+        </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-foreground text-background py-12">
+      {/* ── Footer ── */}
+      <footer className="bg-foreground text-background py-14">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-8">
-            <div>
+          <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-8 mb-10">
+            {/* Brand */}
+            <div className="md:col-span-2">
               <div className="flex items-center gap-2 mb-3">
                 <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
                   <QrCode className="w-4 h-4 text-white" />
@@ -585,12 +770,13 @@ export default function App() {
                   QR &amp; PDF Tools
                 </span>
               </div>
-              <p className="text-xs opacity-60 leading-relaxed">
+              <p className="text-xs opacity-60 leading-relaxed max-w-xs">
                 Free, fast, and private browser-based tools for QR codes and PDF
-                conversions.
+                conversions. No sign-up. No data collection.
               </p>
             </div>
 
+            {/* Tools */}
             <div>
               <h5 className="font-display font-bold text-sm mb-3">Tools</h5>
               <ul className="space-y-2">
@@ -611,6 +797,7 @@ export default function App() {
               </ul>
             </div>
 
+            {/* Navigation */}
             <div>
               <h5 className="font-display font-bold text-sm mb-3">
                 Navigation
@@ -630,9 +817,163 @@ export default function App() {
               </ul>
             </div>
 
+            {/* Company */}
             <div>
-              <h5 className="font-display font-bold text-sm mb-3">Contact</h5>
-              <p className="text-xs opacity-60">support@qrpdftools.app</p>
+              <h5 className="font-display font-bold text-sm mb-3">Company</h5>
+              <ul className="space-y-2">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => scrollTo("contact")}
+                    className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+                  >
+                    About Us
+                  </button>
+                </li>
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => scrollTo("contact")}
+                    className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+                  >
+                    Contact
+                  </button>
+                </li>
+                <li>
+                  <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
+                    <DialogTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+                        data-ocid="footer.privacy.open_modal_button"
+                      >
+                        Privacy Policy
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="font-display font-bold">
+                          Privacy Policy
+                        </DialogTitle>
+                        <DialogDescription>
+                          Last updated: {new Date().getFullYear()}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
+                        <p>
+                          <strong>No Data Collection.</strong> We do not
+                          collect, store, or share any personal data or files.
+                          All processing — including QR code generation and PDF
+                          conversion — happens entirely within your browser.
+                          Your files never leave your device.
+                        </p>
+                        <p>
+                          <strong>Google Analytics.</strong> We use Google
+                          Analytics (measurement ID: G-X56VJ2MNZQ) to understand
+                          how visitors use our site. This may set analytical
+                          cookies in your browser. Google Analytics data is
+                          anonymised and we do not use it to identify
+                          individuals.
+                        </p>
+                        <p>
+                          <strong>Cookies.</strong> We use only the analytical
+                          cookies set by Google Analytics. We do not use any
+                          advertising, tracking, or functional cookies beyond
+                          this.
+                        </p>
+                        <p>
+                          <strong>Third-Party Services.</strong> Apart from
+                          Google Analytics, we do not integrate any third-party
+                          services that collect user data.
+                        </p>
+                        <p>
+                          <strong>Contact.</strong> If you have questions about
+                          this Privacy Policy, please use our Contact form.
+                        </p>
+                      </div>
+                      <div className="flex justify-end pt-2">
+                        <Button
+                          size="sm"
+                          onClick={() => setPrivacyOpen(false)}
+                          data-ocid="footer.privacy.close_button"
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </li>
+                <li>
+                  <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+                    <DialogTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-xs opacity-60 hover:opacity-100 transition-opacity"
+                        data-ocid="footer.terms.open_modal_button"
+                      >
+                        Terms and Conditions
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="font-display font-bold">
+                          Terms and Conditions
+                        </DialogTitle>
+                        <DialogDescription>
+                          Last updated: {new Date().getFullYear()}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
+                        <p>
+                          <strong>Acceptance of Terms.</strong> By using QR
+                          &amp; PDF Tools, you agree to these Terms and
+                          Conditions. If you do not agree, please discontinue
+                          use of this website.
+                        </p>
+                        <p>
+                          <strong>Use of Tools.</strong> Our tools are provided
+                          for personal, non-commercial use. You may not use them
+                          for any unlawful purpose or in any way that could
+                          damage, disable, or impair the service.
+                        </p>
+                        <p>
+                          <strong>No Warranty.</strong> The tools are provided
+                          "as-is" without warranty of any kind, express or
+                          implied. We do not guarantee uninterrupted or
+                          error-free operation.
+                        </p>
+                        <p>
+                          <strong>Limitation of Liability.</strong> To the
+                          fullest extent permitted by law, we shall not be
+                          liable for any indirect, incidental, or consequential
+                          damages arising from your use of this service.
+                        </p>
+                        <p>
+                          <strong>Intellectual Property.</strong> All content
+                          and code on this website is our intellectual property.
+                          You may not reproduce or redistribute it without
+                          permission.
+                        </p>
+                        <p>
+                          <strong>Changes.</strong> We reserve the right to
+                          update these terms at any time. Continued use of the
+                          site after changes constitutes acceptance of the new
+                          terms.
+                        </p>
+                      </div>
+                      <div className="flex justify-end pt-2">
+                        <Button
+                          size="sm"
+                          onClick={() => setTermsOpen(false)}
+                          data-ocid="footer.terms.close_button"
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </li>
+              </ul>
             </div>
           </div>
 
