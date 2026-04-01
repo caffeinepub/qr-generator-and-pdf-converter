@@ -1,3 +1,4 @@
+import ClickEffects from "@/components/ClickEffects";
 import {
   Accordion,
   AccordionContent,
@@ -44,8 +45,161 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
+
+function WelcomeSplash({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const playChime = () => {
+      try {
+        const ctx = new (
+          window.AudioContext || (window as any).webkitAudioContext
+        )();
+
+        // Master gain
+        const masterGain = ctx.createGain();
+        masterGain.gain.setValueAtTime(0.7, ctx.currentTime);
+        masterGain.connect(ctx.destination);
+
+        // Simple delay node for reverb-like effect
+        const delay = ctx.createDelay(1.0);
+        delay.delayTime.value = 0.25;
+        const delayGain = ctx.createGain();
+        delayGain.gain.value = 0.25;
+        delay.connect(delayGain);
+        delayGain.connect(delay); // feedback loop
+        delayGain.connect(masterGain);
+
+        const notes = [523.25, 659.25, 783.99, 987.77, 1046.5];
+
+        for (const [i, freq] of notes.entries()) {
+          const t = ctx.currentTime + i * 0.18;
+
+          // Primary sine oscillator
+          const osc1 = ctx.createOscillator();
+          const gain1 = ctx.createGain();
+          osc1.type = "sine";
+          osc1.frequency.value = freq;
+          gain1.gain.setValueAtTime(0, t);
+          gain1.gain.linearRampToValueAtTime(0.35, t + 0.02);
+          gain1.gain.exponentialRampToValueAtTime(0.001, t + 1.2);
+          osc1.connect(gain1);
+          gain1.connect(masterGain);
+          gain1.connect(delay);
+          osc1.start(t);
+          osc1.stop(t + 1.3);
+
+          // Warmer triangle oscillator (one octave lower, quieter)
+          const osc2 = ctx.createOscillator();
+          const gain2 = ctx.createGain();
+          osc2.type = "triangle";
+          osc2.frequency.value = freq / 2;
+          gain2.gain.setValueAtTime(0, t);
+          gain2.gain.linearRampToValueAtTime(0.12, t + 0.02);
+          gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.9);
+          osc2.connect(gain2);
+          gain2.connect(masterGain);
+          osc2.start(t);
+          osc2.stop(t + 1.0);
+        }
+
+        // Final chord bloom at the end (all notes together, soft)
+        const chordFreqs = [523.25, 659.25, 783.99];
+        for (const freq of chordFreqs) {
+          const t = ctx.currentTime + notes.length * 0.18 + 0.1;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.15, t + 0.05);
+          gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+          osc.connect(gain);
+          gain.connect(masterGain);
+          gain.connect(delay);
+          osc.start(t);
+          osc.stop(t + 1.6);
+        }
+
+        // Close the temporary AudioContext after all sounds finish to free resources
+        setTimeout(() => {
+          try {
+            ctx.close();
+          } catch (_) {}
+        }, 4000);
+      } catch (_) {
+        // Audio not available
+      }
+    };
+
+    playChime();
+    const timer = setTimeout(onDone, 3000);
+    return () => clearTimeout(timer);
+  }, [onDone]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0, scale: 1.04 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
+      style={{
+        background: "linear-gradient(135deg, #111 0%, #2a2a2a 50%, #000 100%)",
+      }}
+      data-ocid="welcome.modal"
+    >
+      {/* Decorative blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute -top-32 -left-32 w-96 h-96 rounded-full opacity-10"
+          style={{
+            background: "radial-gradient(circle, #fff 0%, transparent 70%)",
+          }}
+        />
+        <div
+          className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full opacity-10"
+          style={{
+            background: "radial-gradient(circle, #fff 0%, transparent 70%)",
+          }}
+        />
+      </div>
+
+      <motion.div
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.5, type: "spring", bounce: 0.4 }}
+        className="text-center px-6 relative"
+      >
+        <motion.div
+          animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
+          transition={{ delay: 0.3, duration: 0.7 }}
+          className="text-7xl mb-6"
+        >
+          👋
+        </motion.div>
+        <h1
+          className="font-extrabold text-7xl sm:text-8xl leading-none mb-4 drop-shadow-lg"
+          style={{ color: "#FFD700" }}
+        >
+          Welcome!
+        </h1>
+        <p
+          className="text-xl sm:text-2xl font-medium tracking-wide"
+          style={{ color: "#c9a227" }}
+        >
+          QR Code &amp; PDF Tools
+        </p>
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ delay: 0.4, duration: 2.4, ease: "linear" }}
+          className="mt-8 h-1 w-48 mx-auto rounded-full origin-left"
+          style={{ background: "rgba(255,215,0,0.4)" }}
+        />
+      </motion.div>
+    </motion.div>
+  );
+}
 
 const TOOLS = [
   {
@@ -197,6 +351,7 @@ const ToolComponents: Record<string, React.FC> = {
 };
 
 export default function App() {
+  const [showWelcome, setShowWelcome] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<
     "home" | "tools" | "contact"
@@ -244,7 +399,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen font-sans">
+      <ClickEffects />
       <Toaster position="top-right" />
+
+      {/* Welcome Splash */}
+      <AnimatePresence>
+        {showWelcome && <WelcomeSplash onDone={() => setShowWelcome(false)} />}
+      </AnimatePresence>
 
       {/* Navbar */}
       <header
@@ -254,14 +415,15 @@ export default function App() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <button
             type="button"
-            className="flex items-center gap-2 font-display font-bold text-lg text-foreground"
+            className="flex items-center"
             onClick={() => scrollTo("home")}
             data-ocid="nav.link"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <QrCode className="w-4 h-4 text-white" />
-            </div>
-            <span className="hidden sm:block">QR &amp; PDF Tools</span>
+            <img
+              src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
+              alt="QR & PDF Tools Logo"
+              className="h-10 w-auto object-contain"
+            />
           </button>
 
           {/* Desktop nav */}
@@ -765,13 +927,12 @@ export default function App() {
           <div className="grid sm:grid-cols-2 md:grid-cols-5 gap-8 mb-10">
             {/* Brand */}
             <div className="md:col-span-2">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-7 h-7 rounded-lg bg-primary flex items-center justify-center">
-                  <QrCode className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-display font-bold text-sm">
-                  QR &amp; PDF Tools
-                </span>
+              <div className="mb-3">
+                <img
+                  src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
+                  alt="QR & PDF Tools Logo"
+                  className="h-9 w-auto object-contain brightness-0 invert opacity-90"
+                />
               </div>
               <p className="text-xs opacity-60 leading-relaxed max-w-xs">
                 Free, fast, and private browser-based tools for QR codes and PDF
