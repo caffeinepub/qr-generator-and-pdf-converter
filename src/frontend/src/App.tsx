@@ -1,4 +1,5 @@
 import ClickEffects from "@/components/ClickEffects";
+import SideGames from "@/components/SideGames";
 import {
   Accordion,
   AccordionContent,
@@ -1170,6 +1171,7 @@ export default function App() {
           </footer>
         </motion.div>
       )}
+      <SideGames />
     </div>
   );
 }
