@@ -143,7 +143,7 @@ function WelcomeSplash({ onDone }: { onDone: () => void }) {
       exit={{ opacity: 0, scale: 1.04 }}
       transition={{ duration: 0.5, ease: "easeInOut" }}
       className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
-      style={{ background: "#000" }}
+      style={{ background: "#000", position: "relative" }}
       data-ocid="welcome.modal"
     >
       {/* Animated live white stripes */}
