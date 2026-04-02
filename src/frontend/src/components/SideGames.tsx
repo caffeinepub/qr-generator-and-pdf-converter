@@ -2,10 +2,12 @@ import { AnimatePresence, motion } from "motion/react";
 import { Suspense, lazy, useState } from "react";
 
 const FlappyBird3D = lazy(() => import("@/games/FlappyBird3D"));
+const NightCentipedeHunt = lazy(() => import("@/games/NightCentipedeHunt"));
 
 export default function SideGames() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [gameOpen, setGameOpen] = useState(false);
+  const [nightCentipedeOpen, setNightCentipedeOpen] = useState(false);
 
   return (
     <>
@@ -111,13 +113,26 @@ export default function SideGames() {
               </p>
             </div>
 
-            {/* Game card */}
+            {/* Flappy Bird 3D card */}
             <GameCard onPlay={() => setGameOpen(true)} />
+
+            {/* Divider */}
+            <div
+              style={{
+                height: "1px",
+                background:
+                  "linear-gradient(90deg, transparent, rgba(200,50,50,0.35), transparent)",
+                margin: "16px 0",
+              }}
+            />
+
+            {/* Night Centipede Hunt card */}
+            <NightCentipedeCard onPlay={() => setNightCentipedeOpen(true)} />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Game overlay (lazy) */}
+      {/* Flappy Bird 3D overlay (lazy) */}
       {gameOpen && (
         <Suspense
           fallback={
@@ -143,11 +158,59 @@ export default function SideGames() {
           <FlappyBird3D onClose={() => setGameOpen(false)} />
         </Suspense>
       )}
+
+      {/* Night Centipede Hunt overlay (lazy) */}
+      {nightCentipedeOpen && (
+        <Suspense
+          fallback={
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9999,
+                background: "#050000",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+                gap: "12px",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: "40px",
+                  animation: "spin 1s linear infinite",
+                }}
+              >
+                🐛
+              </div>
+              <div
+                style={{
+                  color: "#ff4444",
+                  fontSize: "16px",
+                  fontFamily: "monospace",
+                  letterSpacing: "0.12em",
+                  textShadow: "0 0 10px #ff0000",
+                }}
+              >
+                LOADING HORROR...
+              </div>
+              <style>
+                {
+                  "@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }"
+                }
+              </style>
+            </div>
+          }
+        >
+          <NightCentipedeHunt onClose={() => setNightCentipedeOpen(false)} />
+        </Suspense>
+      )}
     </>
   );
 }
 
-// ─── Game Card ────────────────────────────────────────────────────────────────
+// ─── Flappy Bird 3D Card ───────────────────────────────────────────────────────
 function GameCard({ onPlay }: { onPlay: () => void }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -230,6 +293,101 @@ function GameCard({ onPlay }: { onPlay: () => void }) {
           transition: "all 0.2s ease",
           letterSpacing: "0.06em",
           fontFamily: "monospace",
+        }}
+      >
+        ▶ PLAY NOW
+      </button>
+    </div>
+  );
+}
+
+// ─── Night Centipede Hunt Card ─────────────────────────────────────────────────
+function NightCentipedeCard({ onPlay }: { onPlay: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? "rgba(30,0,0,0.9)" : "rgba(15,0,0,0.85)",
+        border: `1px solid rgba(200,0,0,${hovered ? 0.7 : 0.3})`,
+        borderRadius: "16px",
+        padding: "16px",
+        transition: "all 0.3s ease",
+        boxShadow: hovered
+          ? "0 0 30px rgba(180,0,0,0.7), 0 0 60px rgba(100,0,0,0.3), inset 0 0 20px rgba(80,0,0,0.2)"
+          : "0 4px 20px rgba(50,0,0,0.6), inset 0 0 10px rgba(50,0,0,0.1)",
+        transform: hovered ? "scale(1.03)" : "scale(1)",
+      }}
+    >
+      {/* Logo */}
+      <img
+        src="/assets/generated/night-centipede-logo-transparent.dim_400x200.png"
+        alt="Night Centipede Hunt Logo"
+        style={{
+          width: "100%",
+          maxHeight: "100px",
+          objectFit: "contain",
+          marginBottom: "12px",
+          filter: hovered
+            ? "drop-shadow(0 0 14px #ff0000) drop-shadow(0 0 6px #800000)"
+            : "drop-shadow(0 0 6px #cc0000) drop-shadow(0 0 2px #500000)",
+          transition: "filter 0.3s ease",
+        }}
+      />
+      {/* Name */}
+      <h3
+        style={{
+          color: hovered ? "#ff4444" : "#cc2222",
+          fontWeight: 700,
+          fontSize: "15px",
+          margin: "0 0 4px",
+          textShadow: hovered
+            ? "0 0 14px rgba(255,50,50,0.9), 0 0 28px rgba(200,0,0,0.5)"
+            : "0 0 6px rgba(200,0,0,0.6)",
+          transition: "color 0.3s ease, text-shadow 0.3s ease",
+          fontFamily: "monospace",
+          letterSpacing: "0.03em",
+        }}
+      >
+        🐛 Night Centipede Hunt
+      </h3>
+      {/* Description */}
+      <p
+        style={{
+          color: "rgba(200,80,80,0.75)",
+          fontSize: "11px",
+          margin: "0 0 14px",
+          fontFamily: "monospace",
+          letterSpacing: "0.04em",
+        }}
+      >
+        3D Horror Survival · Night Chase
+      </p>
+      {/* Play button */}
+      <button
+        type="button"
+        onClick={onPlay}
+        data-ocid="sidegames.centipede.button"
+        style={{
+          width: "100%",
+          padding: "10px 0",
+          background: hovered
+            ? "linear-gradient(135deg, #aa0000, #ff2222, #aa0000)"
+            : "linear-gradient(135deg, #6b0000, #cc0000, #6b0000)",
+          border: `1px solid rgba(255,80,80,${hovered ? 0.8 : 0.4})`,
+          borderRadius: "8px",
+          color: "white",
+          fontWeight: 700,
+          fontSize: "13px",
+          cursor: "pointer",
+          boxShadow: hovered
+            ? "0 0 24px rgba(255,0,0,0.8), 0 4px 16px rgba(150,0,0,0.6)"
+            : "0 4px 10px rgba(100,0,0,0.5)",
+          transition: "all 0.2s ease",
+          letterSpacing: "0.08em",
+          fontFamily: "monospace",
+          textShadow: "0 0 8px rgba(255,100,100,0.8)",
         }}
       >
         ▶ PLAY NOW
