@@ -25,37 +25,37 @@ const MAP_COLORS: Record<
   forest: {
     ground: "#1e3a0a",
     skyDay: "#5a9fd4",
-    skyNight: "#020804",
+    skyNight: "#0d1a28",
     fogDay: "#a0c890",
-    fogNight: "#060e03",
+    fogNight: "#0e1a10",
   },
   village: {
     ground: "#4a3a1e",
     skyDay: "#8ab0cc",
-    skyNight: "#050402",
+    skyNight: "#1a1008",
     fogDay: "#c0b898",
-    fogNight: "#0a0704",
+    fogNight: "#1c1208",
   },
   graveyard: {
     ground: "#282830",
     skyDay: "#7070a0",
-    skyNight: "#030306",
+    skyNight: "#10101e",
     fogDay: "#a0a0b8",
-    fogNight: "#060608",
+    fogNight: "#12121e",
   },
   city: {
     ground: "#383838",
     skyDay: "#90a8c0",
-    skyNight: "#040404",
+    skyNight: "#121212",
     fogDay: "#b8c4cc",
-    fogNight: "#080808",
+    fogNight: "#161616",
   },
   swamp: {
     ground: "#1e3016",
     skyDay: "#6a9060",
-    skyNight: "#020603",
+    skyNight: "#0a1a10",
     fogDay: "#90b880",
-    fogNight: "#040806",
+    fogNight: "#0e1c10",
   },
 };
 
@@ -1275,8 +1275,8 @@ function PlayerTorch({
       <spotLight
         ref={lightRef}
         color="#fff8e0"
-        intensity={5}
-        distance={35}
+        intensity={9}
+        distance={55}
         angle={Math.PI / 5}
         penumbra={0.35}
         castShadow
@@ -1758,12 +1758,12 @@ function GameScene({
   return (
     <>
       <ambientLight
-        intensity={isDay ? 1.4 : 0.1}
+        intensity={isDay ? 1.4 : 0.45}
         color={isDay ? "#fff8f0" : "#2a3855"}
       />
       <directionalLight
         position={[60, 90, 40]}
-        intensity={isDay ? 2.8 : 0.2}
+        intensity={isDay ? 2.8 : 0.7}
         color={isDay ? "#fffbe0" : "#9aaad0"}
         castShadow
         shadow-mapSize={[2048, 2048]}
@@ -1772,7 +1772,7 @@ function GameScene({
       {!isDay && (
         <directionalLight
           position={[-50, 70, -30]}
-          intensity={0.12}
+          intensity={0.35}
           color="#7788cc"
         />
       )}
