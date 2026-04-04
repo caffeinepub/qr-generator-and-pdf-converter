@@ -1,5 +1,5 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import React from "react";
+import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 
@@ -14,7 +14,6 @@ type ChallengeType =
   | "checkpoint"
   | "escape";
 type CameraType = "third" | "first";
-type ControlMode = "keyboard" | "joystick" | "wheel";
 
 interface GameState {
   started: boolean;
@@ -24,7 +23,6 @@ interface GameState {
   challenge: ChallengeType;
   camera: CameraType;
   carColor: string;
-  controlMode: ControlMode;
   wantedLevel: number;
   score: number;
   driftScore: number;
@@ -445,108 +443,21 @@ function BMWM5({
       <WheelGroup position={[-1.05, 0.2, 1.6]} mirrorX />
       <WheelGroup position={[1.05, 0.2, -1.6]} />
       <WheelGroup position={[-1.05, 0.2, -1.6]} mirrorX />
-      {/* Exhaust pipes - quad setup */}
-      {([0.55, 0.3, -0.3, -0.55] as const).map((ex) => (
-        <mesh
-          key={`ex-${ex}`}
-          position={[ex, 0.19, -2.44]}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
-          <cylinderGeometry args={[0.055, 0.065, 0.18, 14]} />
-          <meshStandardMaterial
-            color="#555555"
-            metalness={0.97}
-            roughness={0.08}
-          />
-        </mesh>
-      ))}
-      {/* Exhaust heat shimmer ring */}
-      {([0.55, 0.3, -0.3, -0.55] as const).map((ex) => (
-        <mesh
-          key={`ex-inner-${ex}`}
-          position={[ex, 0.19, -2.43]}
-          rotation={[Math.PI / 2, 0, 0]}
-        >
-          <cylinderGeometry args={[0.038, 0.038, 0.04, 10]} />
-          <meshStandardMaterial
-            color="#220000"
-            emissive="#ff4400"
-            emissiveIntensity={0.4}
-            roughness={0.3}
-          />
-        </mesh>
-      ))}
-      {/* Rear wing / spoiler */}
-      <mesh position={[0, 1.05, -2.1]}>
-        <boxGeometry args={[1.9, 0.07, 0.32]} />
-        <meshStandardMaterial color="#111111" roughness={0.4} metalness={0.6} />
-      </mesh>
-      {/* Wing end plates */}
-      <mesh position={[0.97, 1.05, -2.1]}>
-        <boxGeometry args={[0.07, 0.22, 0.34]} />
-        <meshStandardMaterial color="#111111" roughness={0.4} metalness={0.6} />
-      </mesh>
-      <mesh position={[-0.97, 1.05, -2.1]}>
-        <boxGeometry args={[0.07, 0.22, 0.34]} />
-        <meshStandardMaterial color="#111111" roughness={0.4} metalness={0.6} />
-      </mesh>
-      {/* Wing mounts */}
-      <mesh position={[0.55, 0.88, -2.18]}>
-        <boxGeometry args={[0.06, 0.28, 0.06]} />
-        <meshStandardMaterial color="#333333" roughness={0.5} metalness={0.7} />
-      </mesh>
-      <mesh position={[-0.55, 0.88, -2.18]}>
-        <boxGeometry args={[0.06, 0.28, 0.06]} />
-        <meshStandardMaterial color="#333333" roughness={0.5} metalness={0.7} />
-      </mesh>
-      {/* Hood scoop */}
-      <mesh position={[0, 0.68, 1.4]}>
-        <boxGeometry args={[0.55, 0.12, 0.7]} />
-        <meshStandardMaterial color="#0a0a0a" roughness={0.5} metalness={0.5} />
-      </mesh>
-      <mesh position={[0, 0.72, 1.05]}>
-        <boxGeometry args={[0.44, 0.06, 0.1]} />
-        <meshStandardMaterial color="#0a0a0a" roughness={0.4} metalness={0.5} />
-      </mesh>
-      {/* Front grille mesh detail */}
-      {([-0.55, -0.18, 0.18, 0.55] as const).map((gx) => (
-        <mesh key={`grille-${gx}`} position={[gx, 0.35, 2.46]}>
-          <boxGeometry args={[0.25, 0.18, 0.04]} />
-          <meshStandardMaterial
-            color="#0a0a0a"
-            roughness={0.6}
-            metalness={0.7}
-          />
-        </mesh>
-      ))}
-      {/* Front badge */}
-      <mesh position={[0, 0.38, 2.47]}>
-        <cylinderGeometry args={[0.08, 0.08, 0.02, 16]} />
+      {/* Exhaust pipes */}
+      <mesh position={[0.5, 0.18, -2.44]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.06, 0.07, 0.15, 12]} />
         <meshStandardMaterial
-          color="#aaaaaa"
+          color="#666666"
           metalness={0.95}
-          roughness={0.05}
-          emissive="#ffffff"
-          emissiveIntensity={0.15}
+          roughness={0.1}
         />
       </mesh>
-      {/* Side skirts (wider sporty profile) */}
-      <mesh position={[1.06, 0.14, 0]}>
-        <boxGeometry args={[0.1, 0.12, 4.4]} />
-        <meshStandardMaterial color="#111111" roughness={0.5} metalness={0.4} />
-      </mesh>
-      <mesh position={[-1.06, 0.14, 0]}>
-        <boxGeometry args={[0.1, 0.12, 4.4]} />
-        <meshStandardMaterial color="#111111" roughness={0.5} metalness={0.4} />
-      </mesh>
-      {/* Brake lights glow strip */}
-      <mesh position={[0, 0.55, -2.43]}>
-        <boxGeometry args={[1.6, 0.08, 0.04]} />
+      <mesh position={[-0.5, 0.18, -2.44]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.06, 0.07, 0.15, 12]} />
         <meshStandardMaterial
-          color="#ff0000"
-          emissive="#ff0000"
-          emissiveIntensity={1.5}
-          roughness={0.3}
+          color="#666666"
+          metalness={0.95}
+          roughness={0.1}
         />
       </mesh>
     </group>
@@ -559,83 +470,35 @@ function WheelGroup({
 }: { position: [number, number, number]; mirrorX?: boolean }) {
   return (
     <group position={position} scale={[mirrorX ? -1 : 1, 1, 1]}>
-      {/* Tire sidewall outer */}
+      {/* Tire */}
       <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.32, 0.32, 0.24, 24]} />
+        <cylinderGeometry args={[0.3, 0.3, 0.22, 20]} />
+        <meshStandardMaterial color="#111111" roughness={0.9} metalness={0.0} />
+      </mesh>
+      {/* Rim */}
+      <mesh rotation={[0, 0, Math.PI / 2]}>
+        <cylinderGeometry args={[0.22, 0.22, 0.24, 16]} />
         <meshStandardMaterial
-          color="#151515"
-          roughness={0.95}
-          metalness={0.0}
+          color="#cccccc"
+          metalness={0.95}
+          roughness={0.05}
         />
       </mesh>
-      {/* Tire tread ring */}
-      <mesh rotation={[0, 0, Math.PI / 2]}>
-        <torusGeometry args={[0.32, 0.045, 6, 28]} />
-        <meshStandardMaterial color="#0a0a0a" roughness={1.0} />
-      </mesh>
-      {/* Brake disc */}
-      <mesh rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.19, 0.19, 0.05, 20]} />
-        <meshStandardMaterial
-          color="#777777"
-          metalness={0.9}
-          roughness={0.35}
-        />
-      </mesh>
-      {/* Brake caliper */}
-      <mesh position={[0.14, 0.14, 0]}>
-        <boxGeometry args={[0.06, 0.1, 0.1]} />
-        <meshStandardMaterial color="#cc2200" roughness={0.4} metalness={0.6} />
-      </mesh>
-      {/* Rim face */}
-      <mesh rotation={[0, 0, Math.PI / 2]} position={[0.12, 0, 0]}>
-        <cylinderGeometry args={[0.23, 0.23, 0.015, 20]} />
-        <meshStandardMaterial
-          color="#d8d8e8"
-          metalness={0.98}
-          roughness={0.04}
-        />
-      </mesh>
-      {/* Y-Spokes: 5 double-arm spokes */}
-      {[0, 1, 2, 3, 4].map((s) => {
-        const angle = (s / 5) * Math.PI * 2;
-        return (
-          <group key={s} rotation={[0, 0, angle]} position={[0.13, 0, 0]}>
-            {/* Outer spoke arm */}
-            <mesh position={[0, 0.14, 0]}>
-              <boxGeometry args={[0.03, 0.22, 0.04]} />
-              <meshStandardMaterial
-                color="#bbbbcc"
-                metalness={0.95}
-                roughness={0.05}
-              />
-            </mesh>
-            {/* Inner spoke fork left */}
-            <mesh position={[0.02, 0.035, 0]} rotation={[0, 0, 0.35]}>
-              <boxGeometry args={[0.025, 0.1, 0.035]} />
-              <meshStandardMaterial
-                color="#aaaabc"
-                metalness={0.95}
-                roughness={0.05}
-              />
-            </mesh>
-            {/* Inner spoke fork right */}
-            <mesh position={[-0.02, 0.035, 0]} rotation={[0, 0, -0.35]}>
-              <boxGeometry args={[0.025, 0.1, 0.035]} />
-              <meshStandardMaterial
-                color="#aaaabc"
-                metalness={0.95}
-                roughness={0.05}
-              />
-            </mesh>
-          </group>
-        );
-      })}
-      {/* Center cap */}
-      <mesh rotation={[0, 0, Math.PI / 2]} position={[0.14, 0, 0]}>
-        <cylinderGeometry args={[0.055, 0.055, 0.02, 16]} />
-        <meshStandardMaterial color="#1a1a1a" roughness={0.5} metalness={0.7} />
-      </mesh>
+      {/* Spoke details */}
+      {[0, 1, 2, 3, 4].map((spoke) => (
+        <mesh
+          key={spoke}
+          rotation={[0, 0, (spoke / 5) * Math.PI * 2]}
+          position={[0.12, 0, 0]}
+        >
+          <boxGeometry args={[0.2, 0.04, 0.04]} />
+          <meshStandardMaterial
+            color="#aaaaaa"
+            metalness={0.9}
+            roughness={0.1}
+          />
+        </mesh>
+      ))}
     </group>
   );
 }
@@ -2261,63 +2124,31 @@ function GameScene({
   return (
     <>
       <SkySphere topColor={cfg.skyTop} botColor={cfg.skyBot} />
-      {/* Cinematic ambient */}
-      <ambientLight intensity={isNight ? 0.06 : cfg.ambientIntensity * 0.9} />
-      {/* Key sun light with high-res shadows */}
+      <ambientLight intensity={isNight ? 0.08 : cfg.ambientIntensity} />
       <directionalLight
         position={cfg.sunPos}
-        intensity={isNight ? 0.2 : cfg.sunIntensity}
-        color={
-          isNight ? "#8888cc" : gs.weather === "rain" ? "#aaccdd" : "#fff8e8"
-        }
+        intensity={isNight ? 0.3 : cfg.sunIntensity}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-near={0.5}
-        shadow-camera-far={600}
-        shadow-camera-left={-120}
-        shadow-camera-right={120}
-        shadow-camera-top={120}
-        shadow-camera-bottom={-120}
-        shadow-bias={-0.0005}
-      />
-      {/* Fill light (opposite side, softer) */}
-      {!isNight && (
-        <directionalLight
-          position={[
-            -cfg.sunPos[0] * 0.5,
-            cfg.sunPos[1] * 0.3,
-            -cfg.sunPos[2] * 0.5,
-          ]}
-          intensity={cfg.sunIntensity * 0.18}
-          color="#d0e8ff"
-        />
-      )}
-      {/* Ground bounce */}
-      <hemisphereLight
-        args={[
-          isNight ? "#0a0a2a" : gs.map === "desert" ? "#f0d8a0" : "#c8e8ff",
-          isNight ? "#000000" : "#404830",
-          isNight ? 0.08 : 0.35,
-        ]}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-near={0.1}
+        shadow-camera-far={500}
+        shadow-camera-left={-100}
+        shadow-camera-right={100}
+        shadow-camera-top={100}
+        shadow-camera-bottom={-100}
       />
       {isNight && (
         <>
           <pointLight
-            position={[0, 25, 0]}
-            intensity={0.5}
-            color="#7799ff"
-            distance={120}
+            position={[0, 20, 0]}
+            intensity={0.4}
+            color="#8888ff"
+            distance={80}
           />
-          <pointLight
-            position={[0, 8, -20]}
-            intensity={0.3}
-            color="#4455aa"
-            distance={60}
-          />
+          <hemisphereLight args={["#1a1a3a", "#000000", 0.15]} />
         </>
       )}
-      {gs.weather === "fog" && <ambientLight intensity={0.6} color="#c8d8e8" />}
 
       {/* Map */}
       {gs.map === "city" && (
@@ -2423,7 +2254,6 @@ function HUD({
   onPause,
   onMapChange,
   onWeatherChange,
-  onControlModeChange,
 }: {
   state: GameState;
   carX: number;
@@ -2433,7 +2263,6 @@ function HUD({
   onPause: () => void;
   onMapChange: (m: MapType) => void;
   onWeatherChange: (w: WeatherType) => void;
-  onControlModeChange: (m: ControlMode) => void;
 }) {
   return (
     <div
@@ -2651,33 +2480,6 @@ function HUD({
         >
           📷 {state.camera === "third" ? "TPV" : "FPV"}
         </button>
-        {/* Control mode quick-switch */}
-        <button
-          type="button"
-          onClick={() => {
-            const modes: ControlMode[] = ["wheel", "joystick", "keyboard"];
-            const next =
-              modes[(modes.indexOf(state.controlMode) + 1) % modes.length];
-            onControlModeChange(next);
-          }}
-          data-ocid="sdl.controlmode.toggle"
-          style={{
-            background: "rgba(0,0,0,0.75)",
-            border: "1px solid rgba(255,200,80,0.5)",
-            borderRadius: 8,
-            padding: "6px 14px",
-            color: "#ffdd88",
-            fontSize: 12,
-            cursor: "pointer",
-            fontFamily: "monospace",
-          }}
-        >
-          {state.controlMode === "wheel"
-            ? "🚗 WHEEL"
-            : state.controlMode === "joystick"
-              ? "🕹️ STICK"
-              : "⌨️ KEYS"}
-        </button>
         <div
           style={{
             background: "rgba(0,0,0,0.7)",
@@ -2727,9 +2529,8 @@ function HUD({
   );
 }
 
-// ─── Mobile Touch Controls (Multi-Mode) ──────────────────────────────────────
-// Joystick mode
-function JoystickControls({
+// ─── Mobile Touch Controls ─────────────────────────────────────────────────────
+function MobileControls({
   touchRef,
 }: {
   touchRef: React.RefObject<{
@@ -2740,14 +2541,14 @@ function JoystickControls({
     steerY: number;
   }>;
 }) {
-  const joystickBaseRef = React.useRef<{ x: number; y: number } | null>(null);
-  const thumbRef = React.useRef<HTMLDivElement>(null);
+  const joystickRef = useRef<HTMLDivElement>(null);
+  const joystickBaseRef = useRef<{ x: number; y: number } | null>(null);
 
-  const btnStyle = (color: string): React.CSSProperties => ({
+  const btnStyle = (color: string, active = false): React.CSSProperties => ({
     width: 68,
     height: 68,
     borderRadius: "50%",
-    background: "rgba(0,0,0,0.6)",
+    background: active ? color : "rgba(0,0,0,0.6)",
     border: `2px solid ${color}`,
     color: "white",
     fontWeight: 700,
@@ -2759,7 +2560,7 @@ function JoystickControls({
     userSelect: "none",
     WebkitUserSelect: "none",
     touchAction: "none",
-    boxShadow: `0 0 14px ${color}55`,
+    boxShadow: `0 0 12px ${color}44`,
   });
 
   return (
@@ -2771,22 +2572,21 @@ function JoystickControls({
         display: "flex",
         alignItems: "flex-end",
         justifyContent: "space-between",
-        padding: "0 20px 110px",
+        padding: "0 20px 100px",
       }}
     >
-      {/* Left joystick */}
+      {/* Joystick left */}
       <div
+        ref={joystickRef}
         style={{
-          width: 120,
-          height: 120,
+          width: 110,
+          height: 110,
           borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(255,150,0,0.08) 0%, rgba(0,0,0,0.55) 100%)",
-          border: "2px solid rgba(255,150,0,0.4)",
+          background: "rgba(0,0,0,0.5)",
+          border: "2px solid rgba(255,255,255,0.3)",
           position: "relative",
           pointerEvents: "auto",
           touchAction: "none",
-          boxShadow: "0 0 20px rgba(255,100,0,0.2)",
         }}
         onTouchStart={(e) => {
           const t = e.touches[0];
@@ -2803,9 +2603,6 @@ function JoystickControls({
             touchRef.current!.gas = dy < -0.3;
             touchRef.current!.brake = dy > 0.3;
           }
-          if (thumbRef.current) {
-            thumbRef.current.style.transform = `translate(calc(-50% + ${Math.max(-38, Math.min(38, dx * 38))}px), calc(-50% + ${Math.max(-38, Math.min(38, dy * 38))}px))`;
-          }
         }}
         onTouchEnd={() => {
           joystickBaseRef.current = null;
@@ -2813,28 +2610,23 @@ function JoystickControls({
           touchRef.current!.steerY = 0;
           touchRef.current!.gas = false;
           touchRef.current!.brake = false;
-          if (thumbRef.current)
-            thumbRef.current.style.transform = "translate(-50%, -50%)";
         }}
       >
         <div
-          ref={thumbRef}
           style={{
             position: "absolute",
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
-            width: 48,
-            height: 48,
+            width: 44,
+            height: 44,
             borderRadius: "50%",
-            background:
-              "radial-gradient(circle, rgba(255,160,60,0.8), rgba(200,80,0,0.6))",
-            border: "2px solid rgba(255,200,100,0.8)",
-            boxShadow: "0 0 12px rgba(255,120,0,0.6)",
-            transition: "none",
+            background: "rgba(255,255,255,0.3)",
+            border: "2px solid rgba(255,255,255,0.6)",
           }}
         />
       </div>
+
       {/* Right buttons */}
       <div
         style={{
@@ -2847,6 +2639,7 @@ function JoystickControls({
         <div style={{ display: "flex", gap: 10 }}>
           <button
             type="button"
+            data-ocid="sdl.drift.button"
             style={btnStyle("#ffcc00")}
             onTouchStart={() => {
               touchRef.current!.drift = true;
@@ -2859,6 +2652,7 @@ function JoystickControls({
           </button>
           <button
             type="button"
+            data-ocid="sdl.brake.button"
             style={btnStyle("#ff4444")}
             onTouchStart={() => {
               touchRef.current!.brake = true;
@@ -2872,6 +2666,7 @@ function JoystickControls({
         </div>
         <button
           type="button"
+          data-ocid="sdl.gas.button"
           style={{
             ...btnStyle("#44ff88"),
             width: 148,
@@ -2888,297 +2683,6 @@ function JoystickControls({
           ⚡ GAS
         </button>
       </div>
-    </div>
-  );
-}
-
-// Steering Wheel mode
-function SteeringWheelControls({
-  touchRef,
-}: {
-  touchRef: React.RefObject<{
-    gas: boolean;
-    brake: boolean;
-    drift: boolean;
-    steerX: number;
-    steerY: number;
-  }>;
-}) {
-  const wheelRotRef = React.useRef(0);
-  const [wheelAngle, setWheelAngle] = React.useState(0);
-  const wheelCenterRef = React.useRef<{ x: number; y: number } | null>(null);
-  const touchIdRef = React.useRef<number | null>(null);
-
-  const handleWheelTouch = (e: React.TouchEvent) => {
-    e.preventDefault();
-    if (e.type === "touchstart") {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      wheelCenterRef.current = {
-        x: rect.left + rect.width / 2,
-        y: rect.top + rect.height / 2,
-      };
-      touchIdRef.current = e.touches[0].identifier;
-    }
-    const touch = Array.from(e.touches).find(
-      (t) => t.identifier === touchIdRef.current,
-    );
-    if (!touch || !wheelCenterRef.current) return;
-    const dx = touch.clientX - wheelCenterRef.current.x;
-    const dy = touch.clientY - wheelCenterRef.current.y;
-    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    let delta = angle - wheelRotRef.current;
-    if (delta > 180) delta -= 360;
-    if (delta < -180) delta += 360;
-    wheelRotRef.current = angle;
-    const steer = Math.max(-1, Math.min(1, dx / 60));
-    touchRef.current!.steerX = steer;
-    setWheelAngle((prev) => {
-      const next = Math.max(-160, Math.min(160, prev + delta * 0.7));
-      return next;
-    });
-    if (e.type === "touchend" || e.type === "touchcancel") {
-      touchIdRef.current = null;
-      wheelCenterRef.current = null;
-      touchRef.current!.steerX = 0;
-      setWheelAngle(0);
-    }
-  };
-
-  const pedalStyle = (color: string): React.CSSProperties => ({
-    flex: 1,
-    height: 70,
-    borderRadius: 14,
-    background: `linear-gradient(135deg, rgba(0,0,0,0.8), ${color}22)`,
-    border: `2px solid ${color}88`,
-    color: "white",
-    fontWeight: 900,
-    fontSize: 14,
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    userSelect: "none",
-    WebkitUserSelect: "none",
-    touchAction: "none",
-    boxShadow: `0 4px 16px ${color}44, inset 0 1px 0 ${color}33`,
-    letterSpacing: "0.05em",
-  });
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        pointerEvents: "none",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-end",
-        paddingBottom: 20,
-      }}
-    >
-      {/* Steering wheel */}
-      <div
-        onTouchStart={handleWheelTouch}
-        onTouchMove={handleWheelTouch}
-        onTouchEnd={handleWheelTouch}
-        onTouchCancel={handleWheelTouch}
-        style={{
-          pointerEvents: "auto",
-          touchAction: "none",
-          marginBottom: 14,
-          width: 140,
-          height: 140,
-          position: "relative",
-          userSelect: "none",
-        }}
-      >
-        {/* Outer ring */}
-        <svg
-          role="img"
-          aria-label="Steering wheel"
-          width="140"
-          height="140"
-          viewBox="0 0 140 140"
-          style={{
-            position: "absolute",
-            inset: 0,
-            transform: `rotate(${wheelAngle}deg)`,
-            transition: wheelAngle === 0 ? "transform 0.3s ease" : "none",
-            filter: "drop-shadow(0 0 12px rgba(255,140,0,0.7))",
-          }}
-        >
-          <title>Steering Wheel</title>
-          <circle
-            cx="70"
-            cy="70"
-            r="62"
-            fill="none"
-            stroke="rgba(255,140,0,0.9)"
-            strokeWidth="12"
-            strokeDasharray="none"
-          />
-          {/* Grip bumps */}
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((a, i) => (
-            <rect
-              key={i}
-              x="66"
-              y="4"
-              width="8"
-              height="14"
-              rx="4"
-              fill="rgba(255,160,60,0.9)"
-              transform={`rotate(${a} 70 70)`}
-            />
-          ))}
-          {/* Spokes */}
-          <line
-            x1="70"
-            y1="8"
-            x2="70"
-            y2="40"
-            stroke="rgba(200,100,0,0.9)"
-            strokeWidth="8"
-            strokeLinecap="round"
-          />
-          <line
-            x1="70"
-            y1="100"
-            x2="70"
-            y2="132"
-            stroke="rgba(200,100,0,0.9)"
-            strokeWidth="8"
-            strokeLinecap="round"
-          />
-          <line
-            x1="8"
-            y1="70"
-            x2="40"
-            y2="70"
-            stroke="rgba(200,100,0,0.9)"
-            strokeWidth="8"
-            strokeLinecap="round"
-          />
-          <line
-            x1="100"
-            y1="70"
-            x2="132"
-            y2="70"
-            stroke="rgba(200,100,0,0.9)"
-            strokeWidth="8"
-            strokeLinecap="round"
-          />
-          {/* Center hub */}
-          <circle
-            cx="70"
-            cy="70"
-            r="18"
-            fill="rgba(30,15,0,0.95)"
-            stroke="rgba(255,140,0,0.8)"
-            strokeWidth="3"
-          />
-          <text
-            x="70"
-            y="75"
-            textAnchor="middle"
-            fill="rgba(255,180,60,0.9)"
-            fontSize="9"
-            fontWeight="bold"
-            fontFamily="monospace"
-          >
-            M5
-          </text>
-        </svg>
-      </div>
-
-      {/* Pedals row */}
-      <div
-        style={{
-          display: "flex",
-          gap: 12,
-          width: "min(340px, 90vw)",
-          pointerEvents: "auto",
-        }}
-      >
-        <button
-          type="button"
-          style={pedalStyle("#ff4444")}
-          onTouchStart={() => {
-            touchRef.current!.brake = true;
-          }}
-          onTouchEnd={() => {
-            touchRef.current!.brake = false;
-          }}
-        >
-          🛑 BRAKE
-        </button>
-        <button
-          type="button"
-          style={pedalStyle("#ffcc00")}
-          onTouchStart={() => {
-            touchRef.current!.drift = true;
-          }}
-          onTouchEnd={() => {
-            touchRef.current!.drift = false;
-          }}
-        >
-          💨 DRIFT
-        </button>
-        <button
-          type="button"
-          style={pedalStyle("#44ff88")}
-          onTouchStart={() => {
-            touchRef.current!.gas = true;
-          }}
-          onTouchEnd={() => {
-            touchRef.current!.gas = false;
-          }}
-        >
-          ⚡ GAS
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Main mobile control dispatcher
-function MobileControls({
-  touchRef,
-  controlMode,
-}: {
-  touchRef: React.RefObject<{
-    gas: boolean;
-    brake: boolean;
-    drift: boolean;
-    steerX: number;
-    steerY: number;
-  }>;
-  controlMode: ControlMode;
-}) {
-  if (controlMode === "wheel")
-    return <SteeringWheelControls touchRef={touchRef} />;
-  if (controlMode === "joystick")
-    return <JoystickControls touchRef={touchRef} />;
-  // keyboard - show a minimal hint overlay only
-  return (
-    <div
-      style={{
-        position: "absolute",
-        bottom: 20,
-        left: "50%",
-        transform: "translateX(-50%)",
-        background: "rgba(0,0,0,0.6)",
-        border: "1px solid rgba(255,150,0,0.4)",
-        borderRadius: 8,
-        padding: "8px 16px",
-        color: "rgba(255,200,100,0.8)",
-        fontSize: 11,
-        fontFamily: "monospace",
-        pointerEvents: "none",
-        whiteSpace: "nowrap",
-      }}
-    >
-      WASD / ↑↓←→ · SHIFT drift · C camera
     </div>
   );
 }
@@ -3303,24 +2807,20 @@ function StartScreen({
   selectedWeather,
   selectedChallenge,
   selectedColor,
-  selectedControlMode,
   onMapChange,
   onWeatherChange,
   onChallengeChange,
   onColorChange,
-  onControlModeChange,
 }: {
   onStart: () => void;
   selectedMap: MapType;
   selectedWeather: WeatherType;
   selectedChallenge: ChallengeType;
   selectedColor: string;
-  selectedControlMode: ControlMode;
   onMapChange: (m: MapType) => void;
   onWeatherChange: (w: WeatherType) => void;
   onChallengeChange: (c: ChallengeType) => void;
   onColorChange: (c: string) => void;
-  onControlModeChange: (m: ControlMode) => void;
 }) {
   const carColors = ["#1a1a2e", "#c0392b", "#f39c12", "#2ecc71", "#8e44ad"];
   const colorNames = [
@@ -3603,77 +3103,19 @@ function StartScreen({
         </button>
       </div>
 
-      {/* Control Mode */}
+      {/* Controls hint */}
       <div
-        style={{ marginTop: 20, marginBottom: 8, width: "100%", maxWidth: 520 }}
+        style={{
+          marginTop: 24,
+          color: "rgba(255,180,80,0.5)",
+          fontSize: 11,
+          fontFamily: "monospace",
+          textAlign: "center",
+          lineHeight: 1.8,
+        }}
       >
-        <div
-          style={{
-            color: "rgba(255,180,80,0.8)",
-            fontSize: 11,
-            marginBottom: 10,
-            fontFamily: "monospace",
-            letterSpacing: "0.08em",
-          }}
-        >
-          🎮 CONTROL MODE
-        </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          {(["wheel", "joystick", "keyboard"] as ControlMode[]).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => onControlModeChange(mode)}
-              data-ocid={`sdl.controlmode.${mode}.button`}
-              style={{
-                flex: 1,
-                padding: "12px 8px",
-                borderRadius: 10,
-                cursor: "pointer",
-                background:
-                  selectedControlMode === mode
-                    ? "linear-gradient(135deg, rgba(255,100,0,0.4), rgba(255,60,0,0.2))"
-                    : "rgba(0,0,0,0.6)",
-                border: `2px solid ${selectedControlMode === mode ? "rgba(255,160,0,0.9)" : "rgba(255,150,0,0.3)"}`,
-                color:
-                  selectedControlMode === mode
-                    ? "#ffcc00"
-                    : "rgba(255,200,100,0.6)",
-                fontSize: 12,
-                fontFamily: "monospace",
-                fontWeight: 700,
-                transition: "all 0.2s",
-                boxShadow:
-                  selectedControlMode === mode
-                    ? "0 0 14px rgba(255,100,0,0.5)"
-                    : "none",
-              }}
-            >
-              {mode === "wheel"
-                ? "🚗 WHEEL"
-                : mode === "joystick"
-                  ? "🕹️ STICK"
-                  : "⌨️ KEYS"}
-            </button>
-          ))}
-        </div>
-        <div
-          style={{
-            color: "rgba(255,180,80,0.45)",
-            fontSize: 10,
-            fontFamily: "monospace",
-            marginTop: 7,
-            textAlign: "center",
-            lineHeight: 1.8,
-          }}
-        >
-          {selectedControlMode === "wheel" &&
-            "Steering wheel + GAS / BRAKE / DRIFT pedals"}
-          {selectedControlMode === "joystick" &&
-            "Joystick to steer + on-screen buttons"}
-          {selectedControlMode === "keyboard" &&
-            "WASD / Arrows · SHIFT drift · C camera · ESC pause"}
-        </div>
+        WASD / ARROWS: Drive &nbsp;|&nbsp; SHIFT: Drift &nbsp;|&nbsp; C: Camera
+        &nbsp;|&nbsp; ESC: Pause
       </div>
     </div>
   );
@@ -3702,7 +3144,6 @@ export default function StreetDriftLegends({
     challenge: "free",
     camera: "third",
     carColor: "#1a1a2e",
-    controlMode: "wheel" as ControlMode,
     wantedLevel: 0,
     score: 0,
     driftScore: 0,
@@ -3801,19 +3242,14 @@ export default function StreetDriftLegends({
       <div style={{ width: "100%", height: "100%", position: "relative" }}>
         <Canvas
           shadows
-          gl={{
-            antialias: true,
-            powerPreference: "high-performance",
-            stencil: false,
-          }}
-          camera={{ fov: 65, near: 0.1, far: 1200, position: [0, 5, 10] }}
+          gl={{ antialias: true, powerPreference: "high-performance" }}
+          camera={{ fov: 70, near: 0.1, far: 1000, position: [0, 5, 10] }}
           style={{ width: "100%", height: "100%", filter: motionBlur }}
           onCreated={({ gl }) => {
             gl.shadowMap.enabled = true;
             gl.shadowMap.type = THREE.PCFSoftShadowMap;
             gl.toneMapping = THREE.ACESFilmicToneMapping;
-            gl.toneMappingExposure = 1.4;
-            gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            gl.toneMappingExposure = 1.2;
           }}
         >
           {gameState.started && (
@@ -3835,16 +3271,12 @@ export default function StreetDriftLegends({
             selectedWeather={gameState.weather}
             selectedChallenge={gameState.challenge}
             selectedColor={gameState.carColor}
-            selectedControlMode={gameState.controlMode}
             onMapChange={(m) => setGameState((s) => ({ ...s, map: m }))}
             onWeatherChange={(w) => setGameState((s) => ({ ...s, weather: w }))}
             onChallengeChange={(c) =>
               setGameState((s) => ({ ...s, challenge: c }))
             }
             onColorChange={(c) => setGameState((s) => ({ ...s, carColor: c }))}
-            onControlModeChange={(m) =>
-              setGameState((s) => ({ ...s, controlMode: m }))
-            }
           />
         )}
 
@@ -3859,9 +3291,6 @@ export default function StreetDriftLegends({
             onPause={handlePause}
             onMapChange={(m) => setGameState((s) => ({ ...s, map: m }))}
             onWeatherChange={(w) => setGameState((s) => ({ ...s, weather: w }))}
-            onControlModeChange={(m) =>
-              setGameState((s) => ({ ...s, controlMode: m }))
-            }
           />
         )}
 
@@ -3879,10 +3308,7 @@ export default function StreetDriftLegends({
 
         {/* Mobile controls */}
         {gameState.started && !gameState.paused && (
-          <MobileControls
-            touchRef={touchRef}
-            controlMode={gameState.controlMode}
-          />
+          <MobileControls touchRef={touchRef} />
         )}
 
         {/* Always visible close button */}
