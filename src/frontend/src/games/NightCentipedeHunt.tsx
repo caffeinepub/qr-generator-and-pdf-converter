@@ -1758,13 +1758,13 @@ function GameScene({
   return (
     <>
       <ambientLight
-        intensity={isDay ? 1.4 : 0.45}
-        color={isDay ? "#fff8f0" : "#2a3855"}
+        intensity={isDay ? 1.4 : 0.85}
+        color={isDay ? "#fff8f0" : "#3a4f6a"}
       />
       <directionalLight
         position={[60, 90, 40]}
-        intensity={isDay ? 2.8 : 0.7}
-        color={isDay ? "#fffbe0" : "#9aaad0"}
+        intensity={isDay ? 2.8 : 1.4}
+        color={isDay ? "#fffbe0" : "#aabfe0"}
         castShadow
         shadow-mapSize={[2048, 2048]}
         shadow-camera-far={300}
@@ -1772,8 +1772,8 @@ function GameScene({
       {!isDay && (
         <directionalLight
           position={[-50, 70, -30]}
-          intensity={0.35}
-          color="#7788cc"
+          intensity={0.65}
+          color="#8899dd"
         />
       )}
       {supercharged && <ambientLight intensity={0.5} color="#ff1a00" />}
