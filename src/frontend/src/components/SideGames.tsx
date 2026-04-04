@@ -3,11 +3,13 @@ import { Suspense, lazy, useState } from "react";
 
 const FlappyBird3D = lazy(() => import("@/games/FlappyBird3D"));
 const NightCentipedeHunt = lazy(() => import("@/games/NightCentipedeHunt"));
+const StreetDriftLegends = lazy(() => import("@/games/StreetDriftLegends"));
 
 export default function SideGames() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [gameOpen, setGameOpen] = useState(false);
   const [nightCentipedeOpen, setNightCentipedeOpen] = useState(false);
+  const [streetDriftOpen, setStreetDriftOpen] = useState(false);
 
   return (
     <>
@@ -128,6 +130,19 @@ export default function SideGames() {
 
             {/* Night Centipede Hunt card */}
             <NightCentipedeCard onPlay={() => setNightCentipedeOpen(true)} />
+
+            {/* Divider */}
+            <div
+              style={{
+                height: "1px",
+                background:
+                  "linear-gradient(90deg, transparent, rgba(255,150,0,0.35), transparent)",
+                margin: "16px 0",
+              }}
+            />
+
+            {/* Street Drift Legends card */}
+            <StreetDriftLegendsCard onPlay={() => setStreetDriftOpen(true)} />
           </motion.div>
         )}
       </AnimatePresence>
@@ -204,6 +219,65 @@ export default function SideGames() {
           }
         >
           <NightCentipedeHunt onClose={() => setNightCentipedeOpen(false)} />
+        </Suspense>
+      )}
+
+      {/* Street Drift Legends overlay (lazy) */}
+      {streetDriftOpen && (
+        <Suspense
+          fallback={
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9999,
+                background: "#0a0500",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexDirection: "column",
+                gap: "14px",
+              }}
+            >
+              <div style={{ fontSize: "48px" }}>🚗</div>
+              <div
+                style={{
+                  color: "#ff8800",
+                  fontSize: "16px",
+                  fontFamily: "monospace",
+                  letterSpacing: "0.12em",
+                  textShadow: "0 0 12px #ff6600",
+                }}
+              >
+                LOADING STREET DRIFT LEGENDS...
+              </div>
+              <div
+                style={{
+                  width: "200px",
+                  height: "3px",
+                  background: "rgba(255,100,0,0.2)",
+                  borderRadius: "2px",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    height: "100%",
+                    background: "linear-gradient(90deg, #ff6600, #ffcc00)",
+                    animation: "loadBar 1.5s ease-in-out infinite",
+                    borderRadius: "2px",
+                  }}
+                />
+              </div>
+              <style>
+                {
+                  "@keyframes loadBar { 0% { width: 0%; margin-left: 0; } 50% { width: 70%; margin-left: 30%; } 100% { width: 0%; margin-left: 100%; } }"
+                }
+              </style>
+            </div>
+          }
+        >
+          <StreetDriftLegends onClose={() => setStreetDriftOpen(false)} />
         </Suspense>
       )}
     </>
@@ -388,6 +462,105 @@ function NightCentipedeCard({ onPlay }: { onPlay: () => void }) {
           letterSpacing: "0.08em",
           fontFamily: "monospace",
           textShadow: "0 0 8px rgba(255,100,100,0.8)",
+        }}
+      >
+        ▶ PLAY NOW
+      </button>
+    </div>
+  );
+}
+
+// ─── Street Drift Legends Card ─────────────────────────────────────────────────
+function StreetDriftLegendsCard({ onPlay }: { onPlay: () => void }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: hovered ? "rgba(20,8,0,0.95)" : "rgba(10,5,0,0.9)",
+        border: `1px solid rgba(255,${hovered ? 140 : 100},0,${hovered ? 0.8 : 0.3})`,
+        borderRadius: "16px",
+        padding: "16px",
+        transition: "all 0.3s ease",
+        boxShadow: hovered
+          ? "0 0 30px rgba(255,100,0,0.6), 0 0 60px rgba(200,60,0,0.25), inset 0 0 20px rgba(100,40,0,0.2)"
+          : "0 4px 20px rgba(80,30,0,0.5), inset 0 0 10px rgba(60,20,0,0.1)",
+        transform: hovered ? "scale(1.03)" : "scale(1)",
+      }}
+    >
+      {/* Thumbnail */}
+      <img
+        src="/assets/generated/street-drift-legends-thumb.dim_400x225.jpg"
+        alt="Street Drift Legends"
+        style={{
+          width: "100%",
+          borderRadius: "10px",
+          objectFit: "cover",
+          marginBottom: "12px",
+          maxHeight: "110px",
+          filter: hovered
+            ? "drop-shadow(0 0 10px rgba(255,120,0,0.7)) brightness(1.1)"
+            : "drop-shadow(0 0 4px rgba(200,80,0,0.5))",
+          transition: "filter 0.3s ease",
+        }}
+      />
+      {/* Name */}
+      <h3
+        style={{
+          fontWeight: 700,
+          fontSize: "15px",
+          margin: "0 0 4px",
+          background: hovered
+            ? "linear-gradient(90deg, #ff8800, #ffcc00, #ff8800)"
+            : "linear-gradient(90deg, #cc6600, #ffaa00, #cc6600)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          backgroundClip: "text",
+          fontFamily: "'Impact', monospace",
+          letterSpacing: "0.04em",
+          filter: hovered ? "drop-shadow(0 0 8px rgba(255,150,0,0.7))" : "none",
+          transition: "filter 0.3s ease",
+        }}
+      >
+        🚗 Street Drift Legends
+      </h3>
+      {/* Description */}
+      <p
+        style={{
+          color: "rgba(255,170,80,0.7)",
+          fontSize: "11px",
+          margin: "0 0 14px",
+          fontFamily: "monospace",
+          letterSpacing: "0.04em",
+        }}
+      >
+        3D Open World · Drive · Drift · Race
+      </p>
+      {/* Play button */}
+      <button
+        type="button"
+        onClick={onPlay}
+        data-ocid="sidegames.streetdrift.button"
+        style={{
+          width: "100%",
+          padding: "10px 0",
+          background: hovered
+            ? "linear-gradient(135deg, #cc5500, #ff8800, #cc5500)"
+            : "linear-gradient(135deg, #8a3800, #cc6600, #8a3800)",
+          border: `1px solid rgba(255,150,0,${hovered ? 0.85 : 0.45})`,
+          borderRadius: "8px",
+          color: "white",
+          fontWeight: 700,
+          fontSize: "13px",
+          cursor: "pointer",
+          boxShadow: hovered
+            ? "0 0 24px rgba(255,100,0,0.8), 0 4px 16px rgba(200,60,0,0.6)"
+            : "0 4px 10px rgba(150,60,0,0.5)",
+          transition: "all 0.2s ease",
+          letterSpacing: "0.08em",
+          fontFamily: "monospace",
+          textShadow: "0 0 8px rgba(255,180,80,0.8)",
         }}
       >
         ▶ PLAY NOW
