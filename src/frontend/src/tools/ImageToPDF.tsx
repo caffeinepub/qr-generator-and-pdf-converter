@@ -11,10 +11,14 @@ import {
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-// jsPDF is loaded via CDN script tag in index.html (window.jspdf.jsPDF)
+// jsPDF is loaded via CDN script tag in index.html
 function getJsPDF() {
-  const Cls = (window as any).jspdf?.jsPDF ?? (window as any).jsPDF;
-  if (!Cls) throw new Error("jsPDF library not loaded");
+  const Cls =
+    (window as any).jspdf?.jsPDF ??
+    (window as any).jsPDF ??
+    (window as any).jspdf;
+  if (!Cls)
+    throw new Error("jsPDF library not loaded. Please refresh and try again.");
   return Cls as new (options?: {
     orientation?: string;
     unit?: string;
@@ -98,8 +102,13 @@ export default function ImageToPDF() {
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       toast.success("PDF created successfully!");
-    } catch {
-      toast.error("Failed to create PDF. Please try again.");
+    } catch (err: any) {
+      console.error("ImageToPDF error:", err);
+      toast.error(
+        err?.message?.includes("not loaded")
+          ? err.message
+          : "Failed to create PDF. Please try again.",
+      );
     } finally {
       setLoading(false);
     }

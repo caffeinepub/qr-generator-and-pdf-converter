@@ -255,8 +255,8 @@ function BMWM5({
         <boxGeometry args={[2.1, 0.5, 4.8]} />
         <meshStandardMaterial
           color={color}
-          metalness={0.92}
-          roughness={0.07}
+          metalness={0.97}
+          roughness={0.04}
           envMapIntensity={1.5}
         />
       </mesh>
@@ -265,8 +265,8 @@ function BMWM5({
         <boxGeometry args={[1.85, 0.55, 2.6]} />
         <meshStandardMaterial
           color={color}
-          metalness={0.92}
-          roughness={0.07}
+          metalness={0.97}
+          roughness={0.04}
           envMapIntensity={1.5}
         />
       </mesh>
@@ -295,8 +295,8 @@ function BMWM5({
         <boxGeometry args={[2.0, 0.22, 1.4]} />
         <meshStandardMaterial
           color={color}
-          metalness={0.92}
-          roughness={0.07}
+          metalness={0.97}
+          roughness={0.04}
           envMapIntensity={1.5}
         />
       </mesh>
@@ -1806,12 +1806,13 @@ function GhostCar({
 function SunMesh() {
   return (
     <mesh position={[200, 180, -300]}>
-      <sphereGeometry args={[18, 16, 16]} />
+      <sphereGeometry args={[22, 24, 24]} />
       <meshStandardMaterial
         color="#FFF5C0"
         emissive="#FFD700"
-        emissiveIntensity={2.5}
+        emissiveIntensity={4.0}
       />
+      <pointLight color="#fff0aa" intensity={3.0} distance={1200} />
     </mesh>
   );
 }
@@ -1820,32 +1821,43 @@ function SunMesh() {
 function NightSkyElements() {
   const positions = useMemo(() => {
     const arr: number[] = [];
-    for (let i = 0; i < 300; i++) {
+    for (let i = 0; i < 600; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 600 + Math.random() * 400;
       arr.push(
-        (Math.random() - 0.5) * 2000,
-        100 + Math.random() * 200,
-        (Math.random() - 0.5) * 2000,
+        r * Math.sin(phi) * Math.cos(theta),
+        Math.abs(r * Math.cos(phi)) + 50,
+        r * Math.sin(phi) * Math.sin(theta),
       );
     }
     return new Float32Array(arr);
   }, []);
   return (
     <>
-      {/* Moon */}
+      {/* Moon with glow halo */}
       <mesh position={[-300, 200, -500]}>
-        <sphereGeometry args={[20, 16, 16]} />
+        <sphereGeometry args={[24, 24, 24]} />
         <meshStandardMaterial
           color="#e8e8ff"
-          emissive="#c8c8ff"
-          emissiveIntensity={0.8}
+          emissive="#ccccff"
+          emissiveIntensity={1.8}
+          roughness={0.85}
         />
+        <pointLight color="#8899ff" intensity={4.0} distance={1500} />
       </mesh>
-      {/* Stars */}
+      {/* Stars using Points for performance */}
       <points>
         <bufferGeometry>
           <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         </bufferGeometry>
-        <pointsMaterial size={1.2} color="white" sizeAttenuation />
+        <pointsMaterial
+          size={1.5}
+          color="#e8f0ff"
+          sizeAttenuation
+          transparent
+          opacity={0.9}
+        />
       </points>
     </>
   );
@@ -2460,26 +2472,26 @@ function GameScene({
         <SceneClouds />
       )}
       {/* Cinematic ambient */}
-      <ambientLight intensity={isNight ? 0.06 : cfg.ambientIntensity * 0.9} />
-      {/* Key sun light with high-res shadows */}
+      <ambientLight intensity={isNight ? 0.12 : cfg.ambientIntensity * 1.0} />
+      {/* Key sun light with ultra-high-res shadows */}
       <directionalLight
         position={cfg.sunPos}
-        intensity={isNight ? 0.2 : cfg.sunIntensity}
+        intensity={isNight ? 0.3 : cfg.sunIntensity * 1.15}
         color={
           isNight ? "#8888cc" : gs.weather === "rain" ? "#aaccdd" : "#fff8e8"
         }
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
         shadow-camera-near={0.5}
-        shadow-camera-far={600}
-        shadow-camera-left={-120}
-        shadow-camera-right={120}
-        shadow-camera-top={120}
-        shadow-camera-bottom={-120}
-        shadow-bias={-0.0005}
+        shadow-camera-far={800}
+        shadow-camera-left={-160}
+        shadow-camera-right={160}
+        shadow-camera-top={160}
+        shadow-camera-bottom={-160}
+        shadow-bias={-0.0003}
       />
-      {/* Fill light (opposite side, softer) */}
+      {/* Fill light */}
       {!isNight && (
         <directionalLight
           position={[
@@ -2487,7 +2499,7 @@ function GameScene({
             cfg.sunPos[1] * 0.3,
             -cfg.sunPos[2] * 0.5,
           ]}
-          intensity={cfg.sunIntensity * 0.18}
+          intensity={cfg.sunIntensity * 0.25}
           color="#d0e8ff"
         />
       )}
@@ -2495,27 +2507,41 @@ function GameScene({
       <hemisphereLight
         args={[
           isNight ? "#0a0a2a" : gs.map === "desert" ? "#f0d8a0" : "#c8e8ff",
-          isNight ? "#000000" : "#404830",
-          isNight ? 0.08 : 0.35,
+          isNight ? "#000510" : "#404830",
+          isNight ? 0.15 : 0.45,
         ]}
       />
       {isNight && (
         <>
           <pointLight
             position={[0, 25, 0]}
-            intensity={0.5}
-            color="#7799ff"
-            distance={120}
+            intensity={0.8}
+            color="#6688ff"
+            distance={180}
           />
           <pointLight
             position={[0, 8, -20]}
-            intensity={0.3}
+            intensity={0.5}
             color="#4455aa"
-            distance={60}
+            distance={100}
+          />
+          <pointLight
+            position={[60, 6, 60]}
+            intensity={0.4}
+            color="#ffaa44"
+            distance={80}
+          />
+          <pointLight
+            position={[-60, 6, -60]}
+            intensity={0.4}
+            color="#ff6644"
+            distance={80}
           />
         </>
       )}
-      {gs.weather === "fog" && <ambientLight intensity={0.6} color="#c8d8e8" />}
+      {gs.weather === "fog" && (
+        <ambientLight intensity={0.65} color="#c8d8e8" />
+      )}
 
       {/* Map */}
       {gs.map === "city" && (
@@ -4011,7 +4037,7 @@ export default function StreetDriftLegends({
             gl.shadowMap.enabled = true;
             gl.shadowMap.type = THREE.PCFSoftShadowMap;
             gl.toneMapping = THREE.ACESFilmicToneMapping;
-            gl.toneMappingExposure = 1.4;
+            gl.toneMappingExposure = 1.5;
             gl.setPixelRatio(Math.min(window.devicePixelRatio, 2));
           }}
         >

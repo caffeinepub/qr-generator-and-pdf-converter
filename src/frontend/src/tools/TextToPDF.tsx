@@ -7,10 +7,14 @@ import { Download, FileOutput, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
-// jsPDF is loaded via CDN script tag in index.html (window.jspdf.jsPDF)
+// jsPDF is loaded via CDN script tag in index.html
 function getJsPDF() {
-  const Cls = (window as any).jspdf?.jsPDF ?? (window as any).jsPDF;
-  if (!Cls) throw new Error("jsPDF library not loaded");
+  const Cls =
+    (window as any).jspdf?.jsPDF ??
+    (window as any).jsPDF ??
+    (window as any).jspdf;
+  if (!Cls)
+    throw new Error("jsPDF library not loaded. Please refresh and try again.");
   return Cls as new (options?: {
     orientation?: string;
     unit?: string;
@@ -21,6 +25,7 @@ function getJsPDF() {
     text(text: string | string[], x: number, y: number): void;
     splitTextToSize(text: string, maxWidth: number): string[];
     output(type: "blob"): Blob;
+    internal: { pageSize: { getWidth(): number; getHeight(): number } };
   };
 }
 
@@ -40,26 +45,32 @@ export default function TextToPDF() {
     try {
       const JsPDF = getJsPDF();
       const pdf = new JsPDF();
+      const pageW = pdf.internal.pageSize.getWidth();
+      let y = 20;
       if (title.trim()) {
         pdf.setFont("helvetica", "bold");
         pdf.setFontSize(18);
-        pdf.text(title, 15, 20);
+        pdf.text(title.trim(), 15, y);
+        y += 15;
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(11);
-        const lines = pdf.splitTextToSize(text, 180);
-        pdf.text(lines, 15, 35);
       } else {
         pdf.setFont("helvetica", "normal");
         pdf.setFontSize(11);
-        const lines = pdf.splitTextToSize(text, 180);
-        pdf.text(lines, 15, 20);
       }
+      const lines = pdf.splitTextToSize(text, pageW - 30);
+      pdf.text(lines, 15, y);
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       toast.success("PDF created successfully!");
-    } catch {
-      toast.error("Failed to convert text. Please try again.");
+    } catch (err: any) {
+      console.error("TextToPDF error:", err);
+      toast.error(
+        err?.message?.includes("not loaded")
+          ? err.message
+          : "Failed to convert text. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -69,7 +80,7 @@ export default function TextToPDF() {
     if (!pdfUrl) return;
     const a = document.createElement("a");
     a.href = pdfUrl;
-    a.download = `${title || "document"}.pdf`;
+    a.download = `${title.trim() || "document"}.pdf`;
     a.click();
   };
 

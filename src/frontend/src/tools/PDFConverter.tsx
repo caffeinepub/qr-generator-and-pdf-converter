@@ -6,8 +6,13 @@ import { toast } from "sonner";
 
 // jsPDF is loaded via CDN script tag in index.html (window.jspdf.jsPDF)
 function getJsPDF() {
-  const Cls = (window as any).jspdf?.jsPDF ?? (window as any).jsPDF;
-  if (!Cls) throw new Error("jsPDF library not loaded");
+  // jsPDF CDN exposes window.jspdf.jsPDF or window.jsPDF
+  const Cls =
+    (window as any).jspdf?.jsPDF ??
+    (window as any).jsPDF ??
+    (window as any).jspdf;
+  if (!Cls)
+    throw new Error("jsPDF library not loaded. Please refresh and try again.");
   return Cls as new (options?: {
     orientation?: string;
     unit?: string;
@@ -81,7 +86,8 @@ export default function PDFConverter() {
           const h = img.height * ratio;
           const x = (pageW - w) / 2;
           const y = (pageH - h) / 2;
-          pdf.addImage(dataUrl, "JPEG", x, y, w, h);
+          const ext = entry.file.type === "image/png" ? "PNG" : "JPEG";
+          pdf.addImage(dataUrl, ext, x, y, w, h);
         } else {
           const text = await entry.file.text();
           pdf.setFont("helvetica", "normal");
@@ -94,8 +100,13 @@ export default function PDFConverter() {
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       toast.success("PDF created successfully!");
-    } catch {
-      toast.error("Conversion failed. Please try again.");
+    } catch (err: any) {
+      console.error("PDF Converter error:", err);
+      toast.error(
+        err?.message?.includes("not loaded")
+          ? err.message
+          : "Conversion failed. Please try again.",
+      );
     } finally {
       setLoading(false);
     }

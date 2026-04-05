@@ -208,23 +208,38 @@ const HOUSE_POSITIONS = buildHousePositions();
 
 // ─── Star Field ─────────────────────────────────────────────────────────────────
 function StarField() {
-  const positions = useMemo(() => {
-    const arr: number[] = [];
-    for (let i = 0; i < 200; i++) {
-      arr.push(
-        (Math.random() - 0.5) * 600,
-        80 + Math.random() * 120,
-        (Math.random() - 0.5) * 600,
+  const { positions, sizes } = useMemo(() => {
+    const pos: number[] = [];
+    const sz: number[] = [];
+    for (let i = 0; i < 500; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 350 + Math.random() * 150;
+      pos.push(
+        r * Math.sin(phi) * Math.cos(theta),
+        Math.abs(r * Math.cos(phi)) + 20,
+        r * Math.sin(phi) * Math.sin(theta),
       );
+      sz.push(0.5 + Math.random() * 1.5);
     }
-    return new Float32Array(arr);
+    return {
+      positions: new Float32Array(pos),
+      sizes: new Float32Array(sz),
+    };
   }, []);
   return (
     <points>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        <bufferAttribute attach="attributes-size" args={[sizes, 1]} />
       </bufferGeometry>
-      <pointsMaterial size={0.8} color="white" sizeAttenuation />
+      <pointsMaterial
+        size={0.9}
+        color="#e8f0ff"
+        sizeAttenuation
+        transparent
+        opacity={0.95}
+      />
     </points>
   );
 }
@@ -232,14 +247,14 @@ function StarField() {
 function MoonMesh() {
   return (
     <mesh position={[-80, 120, -150]}>
-      <sphereGeometry args={[12, 16, 16]} />
+      <sphereGeometry args={[14, 24, 24]} />
       <meshStandardMaterial
-        color="#fffce0"
+        color="#fffce8"
         emissive="#fffce0"
-        emissiveIntensity={0.6}
-        roughness={1}
+        emissiveIntensity={1.4}
+        roughness={0.9}
       />
-      <pointLight color="#aabbff" intensity={1.2} distance={500} />
+      <pointLight color="#9ab0ff" intensity={2.5} distance={600} />
     </mesh>
   );
 }
@@ -251,8 +266,8 @@ function Ground({ map }: { map: MapType }) {
       <planeGeometry args={[400, 400, 30, 30]} />
       <meshStandardMaterial
         color={MAP_COLORS[map].ground}
-        roughness={0.92}
-        metalness={0.0}
+        roughness={0.5}
+        metalness={0.25}
       />
     </mesh>
   );
@@ -1803,32 +1818,53 @@ function GameScene({
   return (
     <>
       <ambientLight
-        intensity={isDay ? 1.4 : 0.85}
-        color={isDay ? "#fff8f0" : "#3a4f6a"}
+        intensity={isDay ? 1.6 : 0.9}
+        color={isDay ? "#fff8f0" : "#2a3a5a"}
       />
       <directionalLight
         position={[60, 90, 40]}
-        intensity={isDay ? 2.8 : 1.4}
-        color={isDay ? "#fffbe0" : "#aabfe0"}
+        intensity={isDay ? 3.2 : 1.8}
+        color={isDay ? "#fffbe0" : "#8899cc"}
         castShadow
-        shadow-mapSize={[2048, 2048]}
-        shadow-camera-far={300}
+        shadow-mapSize={[4096, 4096]}
+        shadow-camera-far={400}
+        shadow-camera-left={-150}
+        shadow-camera-right={150}
+        shadow-camera-top={150}
+        shadow-camera-bottom={-150}
+        shadow-bias={-0.0005}
       />
       {!isDay && (
         <directionalLight
           position={[-50, 70, -30]}
-          intensity={0.65}
-          color="#8899dd"
+          intensity={0.9}
+          color="#6677bb"
+        />
+      )}
+      {!isDay && (
+        <pointLight
+          position={[0, 30, 0]}
+          intensity={0.6}
+          color="#003300"
+          distance={120}
         />
       )}
       {!isDay && <StarField />}
       {!isDay && <MoonMesh />}
-      {supercharged && <ambientLight intensity={0.5} color="#ff1a00" />}
-      {/* Subtle fill light opposite directional */}
+      {supercharged && <ambientLight intensity={0.7} color="#ff1a00" />}
+      {supercharged && (
+        <pointLight
+          position={[0, 10, 0]}
+          intensity={1.5}
+          color="#ff4400"
+          distance={80}
+        />
+      )}
+      {/* Fill light */}
       <directionalLight
         position={[-60, 30, 60]}
-        intensity={0.3}
-        color={isDay ? "#fffbe0" : "#334466"}
+        intensity={isDay ? 0.45 : 0.4}
+        color={isDay ? "#ddeeff" : "#223355"}
       />
       <PlayerTorch
         playerPosRef={playerPosRef}
@@ -3118,7 +3154,7 @@ export default function NightCentipedeHunt({ onClose }: Props) {
           style={{ position: "fixed", inset: 0 }}
           gl={{
             toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.0,
+            toneMappingExposure: 1.15,
             antialias: true,
             alpha: false,
             powerPreference: "high-performance",

@@ -347,9 +347,9 @@ function PipePair({
       <mesh position={[0, topY, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.2, H, 1.2]} />
         <meshStandardMaterial
-          color="#27ae60"
-          metalness={0.12}
-          roughness={0.4}
+          color="#1e9456"
+          metalness={0.75}
+          roughness={0.2}
         />
       </mesh>
       {/* Highlight stripe top pipe */}
@@ -360,17 +360,17 @@ function PipePair({
       <mesh position={[0, gapY + GAP / 2, 0]}>
         <boxGeometry args={[1.55, 0.35, 1.55]} />
         <meshStandardMaterial
-          color="#2ecc71"
-          metalness={0.12}
-          roughness={0.4}
+          color="#25a55e"
+          metalness={0.8}
+          roughness={0.18}
         />
       </mesh>
       <mesh position={[0, botY, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.2, H, 1.2]} />
         <meshStandardMaterial
-          color="#27ae60"
-          metalness={0.12}
-          roughness={0.4}
+          color="#1e9456"
+          metalness={0.75}
+          roughness={0.2}
         />
       </mesh>
       {/* Highlight stripe bottom pipe */}
@@ -381,9 +381,9 @@ function PipePair({
       <mesh position={[0, gapY - GAP / 2, 0]}>
         <boxGeometry args={[1.55, 0.35, 1.55]} />
         <meshStandardMaterial
-          color="#2ecc71"
-          metalness={0.12}
-          roughness={0.4}
+          color="#25a55e"
+          metalness={0.8}
+          roughness={0.18}
         />
       </mesh>
     </group>
@@ -559,23 +559,50 @@ function GameScene({
 
   return (
     <>
-      <Sky sunPosition={[100, 20, 100]} turbidity={8} rayleigh={2} />
-      <ambientLight intensity={0.6} />
-      <directionalLight
-        position={[10, 20, 10]}
-        castShadow
-        intensity={2.0}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+      <Sky
+        sunPosition={[100, 20, 100]}
+        turbidity={5}
+        rayleigh={1.8}
+        mieCoefficient={0.005}
+        mieDirectionalG={0.8}
       />
-      <hemisphereLight args={["#87CEEB", "#4a7c59", 0.35]} />
+      <fog attach="fog" args={["#87CEEB", 60, 350]} />
+      {/* Cinematic 3-point lighting */}
+      <ambientLight intensity={0.7} color="#cce8ff" />
+      <directionalLight
+        position={[15, 30, 15]}
+        castShadow
+        intensity={2.8}
+        color="#fff8e0"
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
+        shadow-camera-near={0.5}
+        shadow-camera-far={200}
+        shadow-camera-left={-60}
+        shadow-camera-right={60}
+        shadow-camera-top={60}
+        shadow-camera-bottom={-60}
+        shadow-bias={-0.001}
+      />
+      {/* Fill light */}
+      <directionalLight
+        position={[-10, 10, -10]}
+        intensity={0.6}
+        color="#a0d0ff"
+      />
+      {/* Ground bounce */}
+      <hemisphereLight args={["#87CEEB", "#3a6b28", 0.55]} />
       <mesh
         position={[0, -10, -5]}
         rotation={[-Math.PI / 2, 0, 0]}
         receiveShadow
       >
         <planeGeometry args={[200, 60]} />
-        <meshStandardMaterial color="#4a7a40" roughness={0.95} metalness={0} />
+        <meshStandardMaterial
+          color="#3d7034"
+          roughness={0.85}
+          metalness={0.05}
+        />
       </mesh>
       {CLOUD_CONFIGS.map((c) => (
         <CloudMesh key={c.id} initPos={c.pos} scale={c.scale} />
@@ -773,7 +800,7 @@ export default function FlappyBird3DGame({ onClose }: { onClose: () => void }) {
             dpr={[1, 2]}
             gl={{
               toneMapping: THREE.ACESFilmicToneMapping,
-              toneMappingExposure: 1.1,
+              toneMappingExposure: 1.25,
               antialias: true,
             }}
             camera={{ fov: 70, position: [0, 0, 8] }}

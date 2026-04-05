@@ -972,11 +972,14 @@ function PlayerMesh({
 function NightStarsSandbox() {
   const positions = useMemo(() => {
     const arr: number[] = [];
-    for (let i = 0; i < 200; i++) {
+    for (let i = 0; i < 500; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 350 + Math.random() * 150;
       arr.push(
-        (Math.random() - 0.5) * 600,
-        60 + Math.random() * 120,
-        (Math.random() - 0.5) * 600,
+        r * Math.sin(phi) * Math.cos(theta),
+        Math.abs(r * Math.cos(phi)) + 10,
+        r * Math.sin(phi) * Math.sin(theta),
       );
     }
     return new Float32Array(arr);
@@ -986,7 +989,13 @@ function NightStarsSandbox() {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
       </bufferGeometry>
-      <pointsMaterial size={0.7} color="white" sizeAttenuation />
+      <pointsMaterial
+        size={1.0}
+        color="#e8f0ff"
+        sizeAttenuation
+        transparent
+        opacity={0.9}
+      />
     </points>
   );
 }
@@ -1003,60 +1012,77 @@ function DayNightScene({
 
   return isDay ? (
     <>
-      <Sky sunPosition={[100, 30, 100]} turbidity={6} rayleigh={2} />
-      <fog attach="fog" args={["#87CEEB", 100, 220]} />
-      <ambientLight intensity={0.7} />
-      <hemisphereLight args={["#87CEEB", "#3a6b3a", 0.4]} />
+      <Sky
+        sunPosition={[100, 30, 100]}
+        turbidity={4}
+        rayleigh={1.5}
+        mieCoefficient={0.004}
+        mieDirectionalG={0.85}
+      />
+      <fog attach="fog" args={["#b8d8f8", 80, 300]} />
+      <ambientLight intensity={0.85} color="#d0eaff" />
+      <hemisphereLight args={["#87CEEB", "#3a6b3a", 0.55]} />
       <directionalLight
         position={[30, 50, 30]}
         castShadow
-        intensity={2.0}
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
-        shadow-camera-far={200}
-        shadow-camera-left={-100}
-        shadow-camera-right={100}
-        shadow-camera-top={100}
-        shadow-camera-bottom={-100}
+        intensity={3.0}
+        color="#fff5e0"
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
+        shadow-camera-far={300}
+        shadow-camera-left={-150}
+        shadow-camera-right={150}
+        shadow-camera-top={150}
+        shadow-camera-bottom={-150}
+        shadow-bias={-0.001}
+      />
+      {/* Fill light */}
+      <directionalLight
+        position={[-20, 20, -20]}
+        intensity={0.6}
+        color="#a8d8ff"
       />
       {/* Sun sphere */}
       <mesh position={[100, 80, 100]}>
-        <sphereGeometry args={[6, 12, 12]} />
+        <sphereGeometry args={[8, 16, 16]} />
         <meshStandardMaterial
           color="#FFF5C0"
           emissive="#FFD700"
-          emissiveIntensity={2.0}
+          emissiveIntensity={3.0}
         />
+        <pointLight color="#fff0aa" intensity={2.0} distance={600} />
       </mesh>
     </>
   ) : (
     <>
-      <color attach="background" args={["#0a0a1a"]} />
-      <fog attach="fog" args={["#0a0a1a", 40, 160]} />
-      <ambientLight intensity={0.25} color="#2233aa" />
+      <color attach="background" args={["#060818"]} />
+      <fog attach="fog" args={["#060818", 50, 200]} />
+      <ambientLight intensity={0.45} color="#1a2d5a" />
       <directionalLight
         position={[-50, 60, -50]}
-        intensity={0.4}
-        color="#4466cc"
+        intensity={1.2}
+        color="#6688dd"
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize-width={4096}
+        shadow-mapSize-height={4096}
+        shadow-camera-far={300}
+        shadow-bias={-0.001}
       />
       <directionalLight
         position={[50, 20, 50]}
-        intensity={0.15}
-        color="#6688dd"
+        intensity={0.4}
+        color="#8899ee"
       />
       {/* Moon */}
       <mesh position={[-80, 120, -150]}>
-        <sphereGeometry args={[8, 16, 16]} />
+        <sphereGeometry args={[10, 24, 24]} />
         <meshStandardMaterial
           color="#fffce0"
           emissive="#fffce0"
-          emissiveIntensity={0.7}
-          roughness={1}
+          emissiveIntensity={1.2}
+          roughness={0.9}
         />
-        <pointLight color="#aabbff" intensity={1.5} distance={400} />
+        <pointLight color="#aabbff" intensity={3.0} distance={600} />
       </mesh>
       {/* Stars */}
       <NightStarsSandbox />
@@ -3295,7 +3321,7 @@ export default function SandboxMode({ onExit }: { onExit: () => void }) {
         dpr={[1, 2]}
         gl={{
           toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.2,
+          toneMappingExposure: 1.3,
           antialias: true,
         }}
         camera={{ fov: 65, position: [0, 8, 14], near: 0.1, far: 220 }}
