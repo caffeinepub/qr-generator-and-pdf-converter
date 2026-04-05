@@ -89,6 +89,7 @@ interface HudState {
   flashMsg: string;
   isHiding: boolean;
   inRocket: boolean;
+  isFlying: boolean;
 }
 
 interface WeaponDef {
@@ -501,10 +502,12 @@ function initTasks(): TaskData[] {
 // ── Static map components ──────────────────────────────────────────────────────
 function Ground() {
   return (
-    <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-      <planeGeometry args={[200, 200]} />
-      <meshStandardMaterial color="#3a6b3a" />
-    </mesh>
+    <>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[200, 200]} />
+        <meshStandardMaterial color="#4a7a40" roughness={0.95} metalness={0} />
+      </mesh>
+    </>
   );
 }
 
@@ -543,17 +546,30 @@ type TreeInfo = {
 function TreeMesh({ tree }: { tree: TreeInfo }) {
   return (
     <group position={[tree.x, 0, tree.z]}>
+      {/* Bark detail - base shadow ring */}
+      <mesh position={[0, 0.15, 0]}>
+        <cylinderGeometry args={[0.44, 0.48, 0.3, 8]} />
+        <meshStandardMaterial color="#3a1e0a" roughness={1} metalness={0} />
+      </mesh>
+      {/* Trunk */}
       <mesh position={[0, tree.trunkH / 2, 0]} castShadow>
-        <cylinderGeometry args={[0.3, 0.4, tree.trunkH, 8]} />
-        <meshStandardMaterial color="#6B4226" />
+        <cylinderGeometry args={[0.28, 0.42, tree.trunkH, 8]} />
+        <meshStandardMaterial color="#6B4226" roughness={0.95} metalness={0} />
       </mesh>
-      <mesh position={[0, tree.trunkH + tree.coneH * 0.4, 0]} castShadow>
-        <coneGeometry args={[tree.coneR, tree.coneH, 8]} />
-        <meshStandardMaterial color="#1a6b1a" />
+      {/* Lower canopy - darker */}
+      <mesh position={[0, tree.trunkH + tree.coneH * 0.3, 0]} castShadow>
+        <coneGeometry args={[tree.coneR * 1.1, tree.coneH * 0.65, 8]} />
+        <meshStandardMaterial color="#1a7a1a" roughness={0.8} metalness={0} />
       </mesh>
-      <mesh position={[0, tree.trunkH + tree.coneH * 0.75, 0]} castShadow>
-        <coneGeometry args={[tree.coneR * 0.7, tree.coneH * 0.7, 8]} />
-        <meshStandardMaterial color="#228b22" />
+      {/* Mid canopy */}
+      <mesh position={[0, tree.trunkH + tree.coneH * 0.62, 0]} castShadow>
+        <coneGeometry args={[tree.coneR * 0.85, tree.coneH * 0.65, 8]} />
+        <meshStandardMaterial color="#228b22" roughness={0.8} metalness={0} />
+      </mesh>
+      {/* Top canopy - brightest */}
+      <mesh position={[0, tree.trunkH + tree.coneH * 0.95, 0]} castShadow>
+        <coneGeometry args={[tree.coneR * 0.55, tree.coneH * 0.5, 8]} />
+        <meshStandardMaterial color="#2d9b2d" roughness={0.75} metalness={0} />
       </mesh>
     </group>
   );
@@ -565,29 +581,59 @@ function HouseMesh({
   const [x, z, w, d, h, color] = def;
   return (
     <group position={[x, 0, z]}>
-      {/* walls */}
-      <mesh position={[0, h / 2, 0]} castShadow receiveShadow>
+      {/* Foundation slab */}
+      <mesh position={[0, 0.1, 0]} receiveShadow>
+        <boxGeometry args={[w + 0.4, 0.2, d + 0.4]} />
+        <meshStandardMaterial color="#7a6a5a" roughness={0.95} metalness={0} />
+      </mesh>
+      {/* Walls */}
+      <mesh position={[0, h / 2 + 0.1, 0]} castShadow receiveShadow>
         <boxGeometry args={[w, h, d]} />
-        <meshStandardMaterial color={color} />
+        <meshStandardMaterial color={color} roughness={0.85} metalness={0} />
       </mesh>
-      {/* roof */}
-      <mesh position={[0, h + 1.2, 0]} castShadow>
+      {/* Roof */}
+      <mesh position={[0, h + 0.1 + 1.2, 0]} castShadow>
         <coneGeometry args={[Math.max(w, d) * 0.75, 2.5, 4]} />
-        <meshStandardMaterial color="#8B0000" />
+        <meshStandardMaterial color="#8B0000" roughness={0.9} metalness={0} />
       </mesh>
-      {/* door */}
-      <mesh position={[0, 1.0, d / 2 + 0.01]}>
-        <boxGeometry args={[1.2, 2, 0.1]} />
-        <meshStandardMaterial color="#5C3317" />
+      {/* Chimney */}
+      <mesh position={[w * 0.28, h + 0.1 + 1.8, 0]} castShadow>
+        <boxGeometry args={[0.55, 1.5, 0.55]} />
+        <meshStandardMaterial color="#6a3a2a" roughness={0.9} metalness={0} />
       </mesh>
-      {/* windows */}
-      <mesh position={[-1.6, h * 0.55, d / 2 + 0.01]}>
-        <boxGeometry args={[1.1, 1.0, 0.1]} />
-        <meshStandardMaterial color="#aaddff" />
+      {/* Door */}
+      <mesh position={[0, 1.1, d / 2 + 0.12]}>
+        <boxGeometry args={[1.2, 2.2, 0.1]} />
+        <meshStandardMaterial
+          color="#5C3317"
+          roughness={0.7}
+          metalness={0.05}
+        />
       </mesh>
-      <mesh position={[1.6, h * 0.55, d / 2 + 0.01]}>
-        <boxGeometry args={[1.1, 1.0, 0.1]} />
-        <meshStandardMaterial color="#aaddff" />
+      {/* Door frame */}
+      <mesh position={[0, 1.1, d / 2 + 0.14]}>
+        <boxGeometry args={[1.45, 2.45, 0.06]} />
+        <meshStandardMaterial color="#3a2010" roughness={0.8} metalness={0} />
+      </mesh>
+      {/* Window left */}
+      <mesh position={[-1.6, h * 0.55 + 0.1, d / 2 + 0.1]}>
+        <boxGeometry args={[1.1, 1.0, 0.08]} />
+        <meshStandardMaterial color="#aaddff" roughness={0.1} metalness={0.2} />
+      </mesh>
+      {/* Window left frame */}
+      <mesh position={[-1.6, h * 0.55 + 0.1, d / 2 + 0.14]}>
+        <boxGeometry args={[1.3, 1.2, 0.05]} />
+        <meshStandardMaterial color="#3a2010" roughness={0.8} metalness={0} />
+      </mesh>
+      {/* Window right */}
+      <mesh position={[1.6, h * 0.55 + 0.1, d / 2 + 0.1]}>
+        <boxGeometry args={[1.1, 1.0, 0.08]} />
+        <meshStandardMaterial color="#aaddff" roughness={0.1} metalness={0.2} />
+      </mesh>
+      {/* Window right frame */}
+      <mesh position={[1.6, h * 0.55 + 0.1, d / 2 + 0.14]}>
+        <boxGeometry args={[1.3, 1.2, 0.05]} />
+        <meshStandardMaterial color="#3a2010" roughness={0.8} metalness={0} />
       </mesh>
     </group>
   );
@@ -800,41 +846,148 @@ function ExplosionMesh({
   );
 }
 
-// ── Player mesh ───────────────────────────────────────────────────────────────
+// ── Bird Player mesh ──────────────────────────────────────────────────────────
 function PlayerMesh({
   groupRef,
 }: { groupRef: React.MutableRefObject<THREE.Group | null> }) {
+  const leftWingRef = useRef<THREE.Group>(null);
+  const rightWingRef = useRef<THREE.Group>(null);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    const a = Math.sin(t * 12) * 0.6;
+    if (leftWingRef.current) leftWingRef.current.rotation.z = a;
+    if (rightWingRef.current) rightWingRef.current.rotation.z = -a;
+  });
   return (
     <group ref={groupRef}>
-      {/* body */}
-      <mesh position={[0, 0.55, 0]} castShadow>
-        <boxGeometry args={[0.55, 0.9, 0.32]} />
-        <meshStandardMaterial color="#cc2222" />
+      {/* Large rounded body */}
+      <mesh position={[0, 0.55, 0]} castShadow scale={[1.0, 0.85, 0.7]}>
+        <sphereGeometry args={[0.52, 12, 10]} />
+        <meshStandardMaterial color="#FFB800" roughness={0.3} metalness={0} />
       </mesh>
-      {/* head */}
-      <mesh position={[0, 1.22, 0]} castShadow>
-        <sphereGeometry args={[0.25, 10, 8]} />
-        <meshStandardMaterial color="#f4c98a" />
+      {/* Breast feather lighter patch */}
+      <mesh position={[0, 0.5, 0.32]} castShadow>
+        <sphereGeometry args={[0.32, 10, 8]} />
+        <meshStandardMaterial color="#FFDA6A" roughness={0.3} metalness={0} />
       </mesh>
-      {/* arms */}
-      <mesh position={[-0.37, 0.62, 0]} castShadow>
-        <boxGeometry args={[0.18, 0.65, 0.18]} />
-        <meshStandardMaterial color="#cc2222" />
+      {/* Head */}
+      <mesh position={[0, 0.98, 0.25]} castShadow>
+        <sphereGeometry args={[0.28, 12, 10]} />
+        <meshStandardMaterial color="#FFB800" roughness={0.3} metalness={0} />
       </mesh>
-      <mesh position={[0.37, 0.62, 0]} castShadow>
-        <boxGeometry args={[0.18, 0.65, 0.18]} />
-        <meshStandardMaterial color="#cc2222" />
+      {/* Beak */}
+      <mesh position={[0, 0.95, 0.54]} rotation={[0.3, 0, 0]}>
+        <coneGeometry args={[0.065, 0.22, 8]} />
+        <meshStandardMaterial color="#FF4500" roughness={0.4} metalness={0} />
       </mesh>
-      {/* legs */}
-      <mesh position={[-0.16, -0.02, 0]} castShadow>
-        <boxGeometry args={[0.2, 0.6, 0.22]} />
-        <meshStandardMaterial color="#222266" />
+      {/* Left eye white */}
+      <mesh position={[-0.12, 1.04, 0.42]}>
+        <sphereGeometry args={[0.065, 8, 8]} />
+        <meshStandardMaterial color="#f8f8f8" roughness={0.1} metalness={0} />
       </mesh>
-      <mesh position={[0.16, -0.02, 0]} castShadow>
-        <boxGeometry args={[0.2, 0.6, 0.22]} />
-        <meshStandardMaterial color="#222266" />
+      {/* Left pupil */}
+      <mesh position={[-0.12, 1.04, 0.478]}>
+        <sphereGeometry args={[0.038, 7, 7]} />
+        <meshStandardMaterial color="#1a0a00" roughness={0.2} metalness={0} />
+      </mesh>
+      {/* Left eye glint */}
+      <mesh position={[-0.105, 1.05, 0.505]}>
+        <sphereGeometry args={[0.016, 6, 6]} />
+        <meshStandardMaterial color="white" roughness={0.1} metalness={0} />
+      </mesh>
+      {/* Right eye white */}
+      <mesh position={[0.12, 1.04, 0.42]}>
+        <sphereGeometry args={[0.065, 8, 8]} />
+        <meshStandardMaterial color="#f8f8f8" roughness={0.1} metalness={0} />
+      </mesh>
+      {/* Right pupil */}
+      <mesh position={[0.12, 1.04, 0.478]}>
+        <sphereGeometry args={[0.038, 7, 7]} />
+        <meshStandardMaterial color="#1a0a00" roughness={0.2} metalness={0} />
+      </mesh>
+      {/* Right eye glint */}
+      <mesh position={[0.105, 1.05, 0.505]}>
+        <sphereGeometry args={[0.016, 6, 6]} />
+        <meshStandardMaterial color="white" roughness={0.1} metalness={0} />
+      </mesh>
+      {/* Left wing */}
+      <group ref={leftWingRef} position={[-0.52, 0.55, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.55, 0.07, 0.38]} />
+          <meshStandardMaterial color="#FF8C00" roughness={0.3} metalness={0} />
+        </mesh>
+        {/* Wing secondary feathers */}
+        <mesh position={[-0.1, 0, -0.14]} rotation={[0, 0.15, 0]}>
+          <boxGeometry args={[0.4, 0.05, 0.2]} />
+          <meshStandardMaterial color="#CC6600" roughness={0.3} metalness={0} />
+        </mesh>
+      </group>
+      {/* Right wing */}
+      <group ref={rightWingRef} position={[0.52, 0.55, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.55, 0.07, 0.38]} />
+          <meshStandardMaterial color="#FF8C00" roughness={0.3} metalness={0} />
+        </mesh>
+        {/* Wing secondary feathers */}
+        <mesh position={[0.1, 0, -0.14]} rotation={[0, -0.15, 0]}>
+          <boxGeometry args={[0.4, 0.05, 0.2]} />
+          <meshStandardMaterial color="#CC6600" roughness={0.3} metalness={0} />
+        </mesh>
+      </group>
+      {/* Tail feathers - 3 overlapping */}
+      <mesh position={[0, 0.42, -0.48]} rotation={[0.4, 0, 0]} castShadow>
+        <boxGeometry args={[0.42, 0.06, 0.28]} />
+        <meshStandardMaterial color="#CC7700" roughness={0.3} metalness={0} />
+      </mesh>
+      <mesh
+        position={[-0.12, 0.44, -0.44]}
+        rotation={[0.38, 0.2, 0]}
+        castShadow
+      >
+        <boxGeometry args={[0.25, 0.05, 0.24]} />
+        <meshStandardMaterial color="#AA5500" roughness={0.3} metalness={0} />
+      </mesh>
+      <mesh
+        position={[0.12, 0.44, -0.44]}
+        rotation={[0.38, -0.2, 0]}
+        castShadow
+      >
+        <boxGeometry args={[0.25, 0.05, 0.24]} />
+        <meshStandardMaterial color="#AA5500" roughness={0.3} metalness={0} />
+      </mesh>
+      {/* Feet (only visible when near ground) */}
+      <mesh position={[-0.15, 0.08, 0.05]} castShadow>
+        <cylinderGeometry args={[0.02, 0.02, 0.2, 6]} />
+        <meshStandardMaterial color="#FF6600" roughness={0.5} metalness={0} />
+      </mesh>
+      <mesh position={[0.15, 0.08, 0.05]} castShadow>
+        <cylinderGeometry args={[0.02, 0.02, 0.2, 6]} />
+        <meshStandardMaterial color="#FF6600" roughness={0.5} metalness={0} />
       </mesh>
     </group>
+  );
+}
+
+// ── Night Stars (Sandbox) ────────────────────────────────────────────────────
+function NightStarsSandbox() {
+  const positions = useMemo(() => {
+    const arr: number[] = [];
+    for (let i = 0; i < 200; i++) {
+      arr.push(
+        (Math.random() - 0.5) * 600,
+        60 + Math.random() * 120,
+        (Math.random() - 0.5) * 600,
+      );
+    }
+    return new Float32Array(arr);
+  }, []);
+  return (
+    <points>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial size={0.7} color="white" sizeAttenuation />
+    </points>
   );
 }
 
@@ -850,33 +1003,63 @@ function DayNightScene({
 
   return isDay ? (
     <>
-      <Sky sunPosition={[100, 20, 100]} turbidity={8} rayleigh={2} />
-      <fog attach="fog" args={["#87CEEB", 80, 200]} />
-      <ambientLight intensity={0.6} />
+      <Sky sunPosition={[100, 30, 100]} turbidity={6} rayleigh={2} />
+      <fog attach="fog" args={["#87CEEB", 100, 220]} />
+      <ambientLight intensity={0.7} />
+      <hemisphereLight args={["#87CEEB", "#3a6b3a", 0.4]} />
       <directionalLight
         position={[30, 50, 30]}
         castShadow
-        intensity={1.5}
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        intensity={2.0}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-far={200}
         shadow-camera-left={-100}
         shadow-camera-right={100}
         shadow-camera-top={100}
         shadow-camera-bottom={-100}
       />
+      {/* Sun sphere */}
+      <mesh position={[100, 80, 100]}>
+        <sphereGeometry args={[6, 12, 12]} />
+        <meshStandardMaterial
+          color="#FFF5C0"
+          emissive="#FFD700"
+          emissiveIntensity={2.0}
+        />
+      </mesh>
     </>
   ) : (
     <>
       <color attach="background" args={["#0a0a1a"]} />
-      <fog attach="fog" args={["#0a0a1a", 40, 150]} />
-      <ambientLight intensity={0.15} color="#2233aa" />
+      <fog attach="fog" args={["#0a0a1a", 40, 160]} />
+      <ambientLight intensity={0.25} color="#2233aa" />
       <directionalLight
-        position={[-50, 30, -50]}
-        intensity={0.2}
+        position={[-50, 60, -50]}
+        intensity={0.4}
         color="#4466cc"
         castShadow
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
       />
+      <directionalLight
+        position={[50, 20, 50]}
+        intensity={0.15}
+        color="#6688dd"
+      />
+      {/* Moon */}
+      <mesh position={[-80, 120, -150]}>
+        <sphereGeometry args={[8, 16, 16]} />
+        <meshStandardMaterial
+          color="#fffce0"
+          emissive="#fffce0"
+          emissiveIntensity={0.7}
+          roughness={1}
+        />
+        <pointLight color="#aabbff" intensity={1.5} distance={400} />
+      </mesh>
+      {/* Stars */}
+      <NightStarsSandbox />
       {/* Street lamp lights near houses */}
       <pointLight
         position={[10, 5, 10]}
@@ -1700,6 +1883,7 @@ function SandboxScene({
         flashMsg: flashMsgTimerRef.current > 0 ? flashMsgRef.current : "",
         isHiding: isHidingRef.current,
         inRocket: inRocketRef.current,
+        isFlying: flyRef.current,
       });
     }
   });
@@ -2074,6 +2258,17 @@ function SandboxHUD({
             🏠 HIDING — WANTED DROPPING
           </div>
         )}
+        <div
+          style={{
+            color: hud.isFlying ? "#00ff88" : "#888",
+            fontSize: 10,
+            marginTop: 4,
+            fontWeight: 700,
+            textShadow: hud.isFlying ? "0 0 8px #00ff88" : "none",
+          }}
+        >
+          {hud.isFlying ? "🐦 FLY MODE [F]" : "👟 WALK MODE [F]"}
+        </div>
       </div>
 
       {/* ── TOP CENTER: wanted stars ──────────────────────────────────────── */}
@@ -2945,6 +3140,7 @@ export default function SandboxMode({ onExit }: { onExit: () => void }) {
     flashMsg: "",
     isHiding: false,
     inRocket: false,
+    isFlying: false,
   });
   const [gameOver, setGameOver] = useState(false);
   const [resetKey, setResetKey] = useState(0);
@@ -3070,6 +3266,7 @@ export default function SandboxMode({ onExit }: { onExit: () => void }) {
       flashMsg: "",
       isHiding: false,
       inRocket: false,
+      isFlying: false,
     });
   };
 
@@ -3095,7 +3292,12 @@ export default function SandboxMode({ onExit }: { onExit: () => void }) {
       <Canvas
         key={resetKey}
         shadows
-        dpr={[1, 1.5]}
+        dpr={[1, 2]}
+        gl={{
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.2,
+          antialias: true,
+        }}
         camera={{ fov: 65, position: [0, 8, 14], near: 0.1, far: 220 }}
         style={{ position: "absolute", inset: 0 }}
       >

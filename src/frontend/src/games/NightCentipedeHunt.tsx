@@ -1,5 +1,12 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import * as THREE from "three";
 
 type GameState = "menu" | "playing" | "gameover";
@@ -199,6 +206,44 @@ function buildHousePositions(): THREE.Vector3[] {
 }
 const HOUSE_POSITIONS = buildHousePositions();
 
+// ─── Star Field ─────────────────────────────────────────────────────────────────
+function StarField() {
+  const positions = useMemo(() => {
+    const arr: number[] = [];
+    for (let i = 0; i < 200; i++) {
+      arr.push(
+        (Math.random() - 0.5) * 600,
+        80 + Math.random() * 120,
+        (Math.random() - 0.5) * 600,
+      );
+    }
+    return new Float32Array(arr);
+  }, []);
+  return (
+    <points>
+      <bufferGeometry>
+        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+      </bufferGeometry>
+      <pointsMaterial size={0.8} color="white" sizeAttenuation />
+    </points>
+  );
+}
+
+function MoonMesh() {
+  return (
+    <mesh position={[-80, 120, -150]}>
+      <sphereGeometry args={[12, 16, 16]} />
+      <meshStandardMaterial
+        color="#fffce0"
+        emissive="#fffce0"
+        emissiveIntensity={0.6}
+        roughness={1}
+      />
+      <pointLight color="#aabbff" intensity={1.2} distance={500} />
+    </mesh>
+  );
+}
+
 // ─── Ground ───────────────────────────────────────────────────────────────────
 function Ground({ map }: { map: MapType }) {
   return (
@@ -206,7 +251,7 @@ function Ground({ map }: { map: MapType }) {
       <planeGeometry args={[400, 400, 30, 30]} />
       <meshStandardMaterial
         color={MAP_COLORS[map].ground}
-        roughness={0.95}
+        roughness={0.92}
         metalness={0.0}
       />
     </mesh>
@@ -1776,7 +1821,15 @@ function GameScene({
           color="#8899dd"
         />
       )}
+      {!isDay && <StarField />}
+      {!isDay && <MoonMesh />}
       {supercharged && <ambientLight intensity={0.5} color="#ff1a00" />}
+      {/* Subtle fill light opposite directional */}
+      <directionalLight
+        position={[-60, 30, 60]}
+        intensity={0.3}
+        color={isDay ? "#fffbe0" : "#334466"}
+      />
       <PlayerTorch
         playerPosRef={playerPosRef}
         yawRef={yawRef}
@@ -3060,9 +3113,12 @@ export default function NightCentipedeHunt({ onClose }: Props) {
         <Canvas
           key={gameKeyRef.current}
           shadows
+          dpr={[1, 2]}
           camera={{ fov: 75, near: 0.1, far: 500 }}
           style={{ position: "fixed", inset: 0 }}
           gl={{
+            toneMapping: THREE.ACESFilmicToneMapping,
+            toneMappingExposure: 1.0,
             antialias: true,
             alpha: false,
             powerPreference: "high-performance",

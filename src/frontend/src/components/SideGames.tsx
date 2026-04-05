@@ -24,20 +24,21 @@ export default function SideGames() {
           top: "50%",
           transform: "translateY(-50%)",
           zIndex: 1001,
-          background: "linear-gradient(135deg, #080040 0%, #1a0080 100%)",
-          border: "1px solid rgba(120,100,255,0.6)",
-          borderRight: sidebarOpen ? "1px solid rgba(120,100,255,0.6)" : "none",
+          background: "rgba(255,255,255,0.15)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(59,130,246,0.4)",
+          borderRight: sidebarOpen ? "1px solid rgba(59,130,246,0.4)" : "none",
           borderRadius: "12px 0 0 12px",
-          padding: "14px 10px",
+          padding: "12px 8px",
           cursor: "pointer",
           boxShadow:
-            "-4px 0 20px rgba(100,50,255,0.5), inset 0 0 12px rgba(80,100,255,0.1)",
-          transition: "right 0.3s ease, box-shadow 0.2s ease",
-          color: "white",
+            "0 0 20px rgba(59,130,246,0.3), inset 0 0 10px rgba(59,130,246,0.05)",
+          transition: "right 0.3s ease, box-shadow 0.3s ease",
+          color: "#1D4ED8",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "5px",
+          gap: "4px",
           lineHeight: 1,
         }}
       >
@@ -48,8 +49,8 @@ export default function SideGames() {
             fontWeight: 800,
             letterSpacing: "0.04em",
             writingMode: "vertical-rl",
-            opacity: 0.85,
-            color: "#a0c0ff",
+            opacity: 0.9,
+            color: "#3B82F6",
           }}
         >
           GAMES

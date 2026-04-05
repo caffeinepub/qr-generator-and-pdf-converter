@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -253,27 +253,52 @@ function BMWM5({
       {/* Main body lower */}
       <mesh position={[0, 0.35, 0]} castShadow receiveShadow>
         <boxGeometry args={[2.1, 0.5, 4.8]} />
-        <meshStandardMaterial color={color} metalness={0.9} roughness={0.1} />
+        <meshStandardMaterial
+          color={color}
+          metalness={0.92}
+          roughness={0.07}
+          envMapIntensity={1.5}
+        />
       </mesh>
       {/* Cabin/Roof */}
       <mesh position={[0, 0.85, -0.1]} castShadow>
         <boxGeometry args={[1.85, 0.55, 2.6]} />
-        <meshStandardMaterial color={color} metalness={0.9} roughness={0.1} />
+        <meshStandardMaterial
+          color={color}
+          metalness={0.92}
+          roughness={0.07}
+          envMapIntensity={1.5}
+        />
       </mesh>
       {/* Hood */}
       <mesh position={[0, 0.52, 1.5]} castShadow>
         <boxGeometry args={[2.0, 0.18, 1.8]} />
-        <meshStandardMaterial color={color} metalness={0.9} roughness={0.08} />
+        <meshStandardMaterial
+          color={color}
+          metalness={0.93}
+          roughness={0.06}
+          envMapIntensity={1.5}
+        />
       </mesh>
       {/* Hood bulge */}
       <mesh position={[0, 0.64, 1.4]}>
         <boxGeometry args={[0.7, 0.1, 1.5]} />
-        <meshStandardMaterial color={color} metalness={0.9} roughness={0.08} />
+        <meshStandardMaterial
+          color={color}
+          metalness={0.93}
+          roughness={0.06}
+          envMapIntensity={1.5}
+        />
       </mesh>
       {/* Trunk */}
       <mesh position={[0, 0.55, -1.7]} castShadow>
         <boxGeometry args={[2.0, 0.22, 1.4]} />
-        <meshStandardMaterial color={color} metalness={0.9} roughness={0.1} />
+        <meshStandardMaterial
+          color={color}
+          metalness={0.92}
+          roughness={0.07}
+          envMapIntensity={1.5}
+        />
       </mesh>
       {/* Windshield front */}
       <mesh position={[0, 0.88, 1.05]} rotation={[-0.52, 0, 0]}>
@@ -563,8 +588,8 @@ function WheelGroup({
       <mesh rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.32, 0.32, 0.24, 24]} />
         <meshStandardMaterial
-          color="#151515"
-          roughness={0.95}
+          color="#0d0d0d"
+          roughness={0.98}
           metalness={0.0}
         />
       </mesh>
@@ -591,9 +616,9 @@ function WheelGroup({
       <mesh rotation={[0, 0, Math.PI / 2]} position={[0.12, 0, 0]}>
         <cylinderGeometry args={[0.23, 0.23, 0.015, 20]} />
         <meshStandardMaterial
-          color="#d8d8e8"
-          metalness={0.98}
-          roughness={0.04}
+          color="#c8c8d8"
+          metalness={0.95}
+          roughness={0.08}
         />
       </mesh>
       {/* Y-Spokes: 5 double-arm spokes */}
@@ -1190,7 +1215,7 @@ function CityDowntownMap({
       {/* Center lane dashes - main road */}
       {Array.from({ length: 75 }, (_, i) => (
         <mesh
-          key={`ld-${i}`}
+          key={`ld-${-330 + i * 12}`}
           position={[0, 0.03, -330 + i * 12]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
@@ -1202,7 +1227,7 @@ function CityDowntownMap({
       {crossStreetZ.flatMap((z) =>
         Array.from({ length: 6 }, (_, i) => (
           <mesh
-            key={`cw-${z}-${i}`}
+            key={`cw-${z}-${(-2.5 + i) * 1.5}`}
             position={[(-2.5 + i) * 1.5, 0.025, z]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
@@ -1217,9 +1242,9 @@ function CityDowntownMap({
         )),
       )}
       {/* Buildings */}
-      {buildings.map((b, bi) => (
+      {buildings.map((b) => (
         <Building
-          key={`bldg-${bi}`}
+          key={`bldg-${b.pos[0]}-${b.pos[2]}`}
           position={b.pos}
           size={b.size}
           color={b.color}
@@ -1230,12 +1255,12 @@ function CityDowntownMap({
       {/* Street lights - main road */}
       {Array.from({ length: 24 }, (_, i) => [
         <StreetLight
-          key={`slr-${i}`}
+          key={`slr-${-300 + i * 38}`}
           position={[12, 0, -300 + i * 38]}
           active={lightsOn}
         />,
         <StreetLight
-          key={`sll-${i}`}
+          key={`sll-${-300 + i * 38}`}
           position={[-12, 0, -300 + i * 38]}
           active={lightsOn}
         />,
@@ -1252,20 +1277,35 @@ function CityDowntownMap({
       )}
       {/* Trees along main road */}
       {Array.from({ length: 20 }, (_, i) => [
-        <Tree key={`tr-${i}`} position={[15.5, 0, -280 + i * 43]} />,
-        <Tree key={`tl-${i}`} position={[-15.5, 0, -280 + i * 43]} />,
+        <Tree
+          key={`tr-main-${-280 + i * 43}`}
+          position={[15.5, 0, -280 + i * 43]}
+        />,
+        <Tree
+          key={`tl-main-${-280 + i * 43}`}
+          position={[-15.5, 0, -280 + i * 43]}
+        />,
       ]).flat()}
       {/* Sidewalk details */}
       {Array.from({ length: 12 }, (_, i) => [
-        <FireHydrant key={`fhr-${i}`} position={[12.2, 0, -240 + i * 62]} />,
-        <Bench key={`br-${i}`} position={[14.8, 0, -200 + i * 70]} />,
-        <Bench key={`bl-${i}`} position={[-14.8, 0, -220 + i * 65]} />,
+        <FireHydrant
+          key={`fhr-${-240 + i * 62}`}
+          position={[12.2, 0, -240 + i * 62]}
+        />,
+        <Bench
+          key={`br-${-200 + i * 70}`}
+          position={[14.8, 0, -200 + i * 70]}
+        />,
+        <Bench
+          key={`bl-${-220 + i * 65}`}
+          position={[-14.8, 0, -220 + i * 65]}
+        />,
       ]).flat()}
       {/* Night City neon sign boards */}
       {nightCity &&
         buildings.slice(0, 20).map((b, ni) => (
           <mesh
-            key={`neon-${ni}`}
+            key={`neon-${b.pos[0]}-${b.pos[2]}`}
             position={[
               b.pos[0],
               b.size[1] * 0.4,
@@ -1321,7 +1361,7 @@ function HighwayMap({ weather }: { weather: WeatherType }) {
       {/* Lane dividers */}
       {Array.from({ length: 108 }, (_, i) => (
         <mesh
-          key={`ld-${i}`}
+          key={`hwy-ld-${-540 + i * 10}`}
           position={[0, 0.02, -540 + i * 10]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
@@ -1332,7 +1372,7 @@ function HighwayMap({ weather }: { weather: WeatherType }) {
       {/* Side lane dashes left */}
       {Array.from({ length: 108 }, (_, i) => (
         <mesh
-          key={`ls-${i}`}
+          key={`hwy-ls-${-540 + i * 10}`}
           position={[-9, 0.02, -540 + i * 10]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
@@ -1348,7 +1388,7 @@ function HighwayMap({ weather }: { weather: WeatherType }) {
       {/* Side lane dashes right */}
       {Array.from({ length: 108 }, (_, i) => (
         <mesh
-          key={`rs-${i}`}
+          key={`hwy-rs-${-540 + i * 10}`}
           position={[9, 0.02, -540 + i * 10]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
@@ -1394,7 +1434,10 @@ function HighwayMap({ weather }: { weather: WeatherType }) {
       </mesh>
       {/* Speed signs every 100 units */}
       {Array.from({ length: 13 }, (_, i) => (
-        <group key={`sign-${i}`} position={[20, 0, -600 + i * 100]}>
+        <group
+          key={`sign-${-600 + i * 100}`}
+          position={[20, 0, -600 + i * 100]}
+        >
           <mesh position={[0, 2, 0]}>
             <cylinderGeometry args={[0.05, 0.05, 4, 8]} />
             <meshStandardMaterial color="#999999" />
@@ -1407,19 +1450,25 @@ function HighwayMap({ weather }: { weather: WeatherType }) {
       ))}
       {/* Landscape hills */}
       {Array.from({ length: 8 }, (_, i) => [
-        <mesh key={`hr-${i}`} position={[50, -3, -500 + i * 130]}>
+        <mesh key={`hr-${-500 + i * 130}`} position={[50, -3, -500 + i * 130]}>
           <sphereGeometry args={[28, 10, 6]} />
           <meshStandardMaterial color="#5a6a40" roughness={0.95} />
         </mesh>,
-        <mesh key={`hl-${i}`} position={[-50, -3, -500 + i * 130]}>
+        <mesh key={`hl-${-500 + i * 130}`} position={[-50, -3, -500 + i * 130]}>
           <sphereGeometry args={[28, 10, 6]} />
           <meshStandardMaterial color="#5a6a40" roughness={0.95} />
         </mesh>,
       ]).flat()}
       {/* Trees lining the highway */}
       {Array.from({ length: 25 }, (_, i) => [
-        <Tree key={`tr-${i}`} position={[30, 0, -580 + i * 46]} />,
-        <Tree key={`tl-${i}`} position={[-30, 0, -580 + i * 46]} />,
+        <Tree
+          key={`tr-hwy-${-580 + i * 46}`}
+          position={[30, 0, -580 + i * 46]}
+        />,
+        <Tree
+          key={`tl-hwy-${-580 + i * 46}`}
+          position={[-30, 0, -580 + i * 46]}
+        />,
       ]).flat()}
     </group>
   );
@@ -1483,7 +1532,7 @@ function MountainMap({ weather }: { weather: WeatherType }) {
       {/* Lane markings */}
       {Array.from({ length: 50 }, (_, i) => (
         <mesh
-          key={`ml-${i}`}
+          key={`mtn-ml-${-280 + i * 12}`}
           position={[0, 0.02, -280 + i * 12]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
@@ -1513,7 +1562,7 @@ function MountainMap({ weather }: { weather: WeatherType }) {
         [-60, 0, 250],
         [60, 0, 250],
       ].map(([x, _y, z], pi) => (
-        <mesh key={`peak-${pi}`} position={[x, 0, z]}>
+        <mesh key={`peak-${x}-${z}`} position={[x, 0, z]}>
           <coneGeometry args={[30 + (pi % 3) * 8, 55 + (pi % 4) * 12, 7]} />
           <meshStandardMaterial
             color={pi % 2 === 0 ? "#787060" : "#6a6050"}
@@ -1527,8 +1576,8 @@ function MountainMap({ weather }: { weather: WeatherType }) {
         [80, 45, -100],
         [0, 55, -180],
         [0, 55, 180],
-      ].map(([x, y, z], si) => (
-        <mesh key={`snow-${si}`} position={[x, y, z]}>
+      ].map(([x, y, z]) => (
+        <mesh key={`snow-${x}-${z}`} position={[x, y, z]}>
           <coneGeometry args={[8, 14, 7]} />
           <meshStandardMaterial color="#eeeeff" roughness={0.5} />
         </mesh>
@@ -1545,11 +1594,11 @@ function MountainMap({ weather }: { weather: WeatherType }) {
       {/* Pine trees */}
       {Array.from({ length: 25 }, (_, i) => [
         <Tree
-          key={`tr-${i}`}
+          key={`tr-mtn-${-280 + i * 22}`}
           position={[10 + (i % 3) * 4, 0, -280 + i * 22]}
         />,
         <Tree
-          key={`tl-${i}`}
+          key={`tl-mtn-${-280 + i * 22}`}
           position={[-10 - (i % 3) * 4, 0, -280 + i * 22]}
         />,
       ]).flat()}
@@ -1564,7 +1613,7 @@ function MountainMap({ weather }: { weather: WeatherType }) {
         [-30, 0, -200],
         [28, 0, -150],
       ].map(([x, _y, z], ri) => (
-        <mesh key={`rock-${ri}`} position={[x, 0.4, z]}>
+        <mesh key={`rock-${x}-${z}`} position={[x, 0.4, z]}>
           <dodecahedronGeometry args={[1.8 + ri * 0.2, 0]} />
           <meshStandardMaterial
             color="#7a7060"
@@ -1620,7 +1669,7 @@ function DesertMap({ weather }: { weather: WeatherType }) {
       {/* Center line dashes */}
       {Array.from({ length: 100 }, (_, i) => (
         <mesh
-          key={`dl-${i}`}
+          key={`dl-${-580 + i * 12}`}
           position={[0, 0.02, -580 + i * 12]}
           rotation={[-Math.PI / 2, 0, 0]}
         >
@@ -1630,12 +1679,15 @@ function DesertMap({ weather }: { weather: WeatherType }) {
       ))}
       {/* Sand dunes */}
       {Array.from({ length: 16 }, (_, i) => [
-        <mesh key={`dr-${i}`} position={[30 + (i % 4) * 18, -4, -400 + i * 55]}>
+        <mesh
+          key={`dr-${-400 + i * 55}`}
+          position={[30 + (i % 4) * 18, -4, -400 + i * 55]}
+        >
           <sphereGeometry args={[18 + (i % 5) * 4, 8, 5]} />
           <meshStandardMaterial color="#c0a060" roughness={0.95} />
         </mesh>,
         <mesh
-          key={`dl2-${i}`}
+          key={`dl2-${-380 + i * 55}`}
           position={[-30 - (i % 4) * 18, -4, -380 + i * 55]}
         >
           <sphereGeometry args={[16 + (i % 4) * 5, 8, 5]} />
@@ -1645,11 +1697,11 @@ function DesertMap({ weather }: { weather: WeatherType }) {
       {/* Cacti */}
       {Array.from({ length: 12 }, (_, i) => [
         <Cactus
-          key={`cr-${i}`}
+          key={`cr-${-300 + i * 55}`}
           position={[20 + (i % 3) * 8, 0, -300 + i * 55]}
         />,
         <Cactus
-          key={`cl-${i}`}
+          key={`cl-${-280 + i * 55}`}
           position={[-20 - (i % 3) * 8, 0, -280 + i * 55]}
         />,
       ]).flat()}
@@ -1664,7 +1716,7 @@ function DesertMap({ weather }: { weather: WeatherType }) {
         [-100, 0, 400],
         [65, 0, 500],
       ].map(([x, _y, z], ri) => (
-        <mesh key={`drock-${ri}`} position={[x, 0.6, z]}>
+        <mesh key={`drock-${x}-${z}`} position={[x, 0.6, z]}>
           <dodecahedronGeometry args={[2.5 + ri * 0.3, 0]} />
           <meshStandardMaterial color="#a09070" roughness={0.9} />
         </mesh>
@@ -1750,6 +1802,144 @@ function GhostCar({
 }
 
 // ─── Sky Sphere ───────────────────────────────────────────────────────────────
+// ─── Sun Mesh ─────────────────────────────────────────────────────────────────
+function SunMesh() {
+  return (
+    <mesh position={[200, 180, -300]}>
+      <sphereGeometry args={[18, 16, 16]} />
+      <meshStandardMaterial
+        color="#FFF5C0"
+        emissive="#FFD700"
+        emissiveIntensity={2.5}
+      />
+    </mesh>
+  );
+}
+
+// ─── Night Sky Elements ───────────────────────────────────────────────────────
+function NightSkyElements() {
+  const positions = useMemo(() => {
+    const arr: number[] = [];
+    for (let i = 0; i < 300; i++) {
+      arr.push(
+        (Math.random() - 0.5) * 2000,
+        100 + Math.random() * 200,
+        (Math.random() - 0.5) * 2000,
+      );
+    }
+    return new Float32Array(arr);
+  }, []);
+  return (
+    <>
+      {/* Moon */}
+      <mesh position={[-300, 200, -500]}>
+        <sphereGeometry args={[20, 16, 16]} />
+        <meshStandardMaterial
+          color="#e8e8ff"
+          emissive="#c8c8ff"
+          emissiveIntensity={0.8}
+        />
+      </mesh>
+      {/* Stars */}
+      <points>
+        <bufferGeometry>
+          <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+        </bufferGeometry>
+        <pointsMaterial size={1.2} color="white" sizeAttenuation />
+      </points>
+    </>
+  );
+}
+
+// ─── Animated Clouds ─────────────────────────────────────────────────────────
+interface CloudGroupProps {
+  initX: number;
+  y: number;
+  z: number;
+  speed: number;
+}
+
+function AnimatedCloudGroup({ initX, y, z, speed }: CloudGroupProps) {
+  const groupRef = useRef<THREE.Group>(null);
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    groupRef.current.position.x -= speed * delta;
+    if (groupRef.current.position.x < -600) {
+      groupRef.current.position.x = 600;
+    }
+  });
+  return (
+    <group ref={groupRef} position={[initX, y, z]}>
+      <mesh>
+        <sphereGeometry args={[18, 7, 5]} />
+        <meshStandardMaterial
+          color="white"
+          transparent
+          opacity={0.82}
+          roughness={1}
+        />
+      </mesh>
+      <mesh position={[20, 4, 0]}>
+        <sphereGeometry args={[14, 7, 5]} />
+        <meshStandardMaterial
+          color="white"
+          transparent
+          opacity={0.78}
+          roughness={1}
+        />
+      </mesh>
+      <mesh position={[-18, 3, 0]}>
+        <sphereGeometry args={[15, 7, 5]} />
+        <meshStandardMaterial
+          color="white"
+          transparent
+          opacity={0.8}
+          roughness={1}
+        />
+      </mesh>
+      <mesh position={[5, 12, 0]}>
+        <sphereGeometry args={[11, 7, 5]} />
+        <meshStandardMaterial
+          color="#f8f8f8"
+          transparent
+          opacity={0.75}
+          roughness={1}
+        />
+      </mesh>
+      <mesh position={[-8, 10, 4]}>
+        <sphereGeometry args={[9, 7, 5]} />
+        <meshStandardMaterial
+          color="#f0f0f0"
+          transparent
+          opacity={0.72}
+          roughness={1}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+const CLOUD_DATA: CloudGroupProps[] = [
+  { initX: -200, y: 90, z: -180, speed: 3.5 },
+  { initX: 50, y: 110, z: -220, speed: 2.8 },
+  { initX: 300, y: 85, z: -160, speed: 4.0 },
+  { initX: -400, y: 100, z: -250, speed: 3.0 },
+  { initX: 150, y: 95, z: -200, speed: 3.8 },
+  { initX: -100, y: 105, z: -190, speed: 2.5 },
+  { initX: 400, y: 88, z: -170, speed: 4.2 },
+  { initX: -300, y: 115, z: -230, speed: 3.2 },
+];
+
+function SceneClouds() {
+  return (
+    <>
+      {CLOUD_DATA.map((c) => (
+        <AnimatedCloudGroup key={`cloud-${c.initX}-${c.z}`} {...c} />
+      ))}
+    </>
+  );
+}
+
 function SkySphere({
   topColor,
   botColor,
@@ -2261,6 +2451,14 @@ function GameScene({
   return (
     <>
       <SkySphere topColor={cfg.skyTop} botColor={cfg.skyBot} />
+      {/* Sun (day/non-night modes) */}
+      {!isNight && gs.weather !== "fog" && <SunMesh />}
+      {/* Night sky: moon + stars */}
+      {isNight && <NightSkyElements />}
+      {/* Animated clouds (day/sunny weather) */}
+      {!isNight && gs.weather !== "rain" && gs.weather !== "fog" && (
+        <SceneClouds />
+      )}
       {/* Cinematic ambient */}
       <ambientLight intensity={isNight ? 0.06 : cfg.ambientIntensity * 0.9} />
       {/* Key sun light with high-res shadows */}
@@ -3019,9 +3217,9 @@ function SteeringWheelControls({
             strokeDasharray="none"
           />
           {/* Grip bumps */}
-          {[0, 45, 90, 135, 180, 225, 270, 315].map((a, i) => (
+          {[0, 45, 90, 135, 180, 225, 270, 315].map((a) => (
             <rect
-              key={i}
+              key={a}
               x="66"
               y="4"
               width="8"
@@ -3801,6 +3999,7 @@ export default function StreetDriftLegends({
       <div style={{ width: "100%", height: "100%", position: "relative" }}>
         <Canvas
           shadows
+          dpr={[1, 2]}
           gl={{
             antialias: true,
             powerPreference: "high-performance",

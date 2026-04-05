@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import type * as THREE from "three";
+import * as THREE from "three";
 
 const SandboxMode = lazy(() => import("./SandboxMode"));
 
@@ -220,43 +220,105 @@ function Bird({
     if (rightWingRef.current) rightWingRef.current.rotation.x = -a;
   });
   return (
-    <group ref={groupRef}>
-      <mesh castShadow>
-        <boxGeometry args={[0.6, 0.4, 0.42]} />
-        <meshStandardMaterial color="#FFB800" />
-      </mesh>
-      <mesh position={[0.22, 0.18, 0]} castShadow>
-        <sphereGeometry args={[0.23, 12, 10]} />
-        <meshStandardMaterial color="#FFB800" />
-      </mesh>
-      <group ref={leftWingRef} position={[0, 0, -0.28]}>
-        <mesh castShadow>
-          <boxGeometry args={[0.38, 0.07, 0.32]} />
-          <meshStandardMaterial color="#FF8C00" />
+    <group scale={1.3}>
+      <group ref={groupRef}>
+        {/* Body - elongated sphere for rounder look */}
+        <mesh castShadow scale={[1.4, 1.0, 1.0]}>
+          <sphereGeometry args={[0.32, 14, 12]} />
+          <meshStandardMaterial color="#FFB800" roughness={0.3} metalness={0} />
+        </mesh>
+        {/* Breast - lighter chest patch */}
+        <mesh position={[0.15, -0.08, 0.2]} castShadow>
+          <sphereGeometry args={[0.22, 10, 8]} />
+          <meshStandardMaterial color="#FFDA6A" roughness={0.3} metalness={0} />
+        </mesh>
+        {/* Head */}
+        <mesh position={[0.28, 0.22, 0]} castShadow>
+          <sphereGeometry args={[0.26, 14, 12]} />
+          <meshStandardMaterial color="#FFB800" roughness={0.3} metalness={0} />
+        </mesh>
+        {/* Left wing */}
+        <group ref={leftWingRef} position={[0, 0, -0.32]}>
+          <mesh castShadow>
+            <boxGeometry args={[0.42, 0.08, 0.38]} />
+            <meshStandardMaterial
+              color="#FF8C00"
+              roughness={0.3}
+              metalness={0}
+            />
+          </mesh>
+          {/* Secondary feather layer */}
+          <mesh position={[0, -0.02, -0.1]} rotation={[0.1, 0, 0]}>
+            <boxGeometry args={[0.35, 0.05, 0.22]} />
+            <meshStandardMaterial
+              color="#CC6600"
+              roughness={0.3}
+              metalness={0}
+            />
+          </mesh>
+        </group>
+        {/* Right wing */}
+        <group ref={rightWingRef} position={[0, 0, 0.32]}>
+          <mesh castShadow>
+            <boxGeometry args={[0.42, 0.08, 0.38]} />
+            <meshStandardMaterial
+              color="#FF8C00"
+              roughness={0.3}
+              metalness={0}
+            />
+          </mesh>
+          {/* Secondary feather layer */}
+          <mesh position={[0, -0.02, 0.1]} rotation={[-0.1, 0, 0]}>
+            <boxGeometry args={[0.35, 0.05, 0.22]} />
+            <meshStandardMaterial
+              color="#CC6600"
+              roughness={0.3}
+              metalness={0}
+            />
+          </mesh>
+        </group>
+        {/* Beak */}
+        <mesh position={[0.55, 0.2, 0]} rotation={[0, 0, -Math.PI / 2]}>
+          <coneGeometry args={[0.068, 0.24, 8]} />
+          <meshStandardMaterial color="#FF4500" roughness={0.4} metalness={0} />
+        </mesh>
+        {/* Right eye white sclera */}
+        <mesh position={[0.34, 0.29, 0.14]}>
+          <sphereGeometry args={[0.07, 9, 9]} />
+          <meshStandardMaterial color="#f8f8f8" roughness={0.1} metalness={0} />
+        </mesh>
+        {/* Right eye pupil */}
+        <mesh position={[0.36, 0.29, 0.17]}>
+          <sphereGeometry args={[0.042, 8, 8]} />
+          <meshStandardMaterial color="#1a0a00" roughness={0.2} metalness={0} />
+        </mesh>
+        {/* Right eye glint */}
+        <mesh position={[0.375, 0.295, 0.2]}>
+          <sphereGeometry args={[0.018, 6, 6]} />
+          <meshStandardMaterial color="white" roughness={0.1} metalness={0} />
+        </mesh>
+        {/* Tail feathers - 3 overlapping */}
+        <mesh position={[-0.38, -0.04, 0]} rotation={[0, 0, 0.35]} castShadow>
+          <boxGeometry args={[0.28, 0.07, 0.34]} />
+          <meshStandardMaterial color="#CC7700" roughness={0.3} metalness={0} />
+        </mesh>
+        <mesh
+          position={[-0.36, -0.03, 0.1]}
+          rotation={[0, 0.2, 0.35]}
+          castShadow
+        >
+          <boxGeometry args={[0.22, 0.055, 0.22]} />
+          <meshStandardMaterial color="#AA5500" roughness={0.3} metalness={0} />
+        </mesh>
+        <mesh
+          position={[-0.36, -0.03, -0.1]}
+          rotation={[0, -0.2, 0.35]}
+          castShadow
+        >
+          <boxGeometry args={[0.22, 0.055, 0.22]} />
+          <meshStandardMaterial color="#AA5500" roughness={0.3} metalness={0} />
         </mesh>
       </group>
-      <group ref={rightWingRef} position={[0, 0, 0.28]}>
-        <mesh castShadow>
-          <boxGeometry args={[0.38, 0.07, 0.32]} />
-          <meshStandardMaterial color="#FF8C00" />
-        </mesh>
-      </group>
-      <mesh position={[0.46, 0.14, 0]} rotation={[0, 0, -Math.PI / 2]}>
-        <coneGeometry args={[0.065, 0.2, 8]} />
-        <meshStandardMaterial color="#FF4500" />
-      </mesh>
-      <mesh position={[0.34, 0.27, 0.13]}>
-        <sphereGeometry args={[0.06, 8, 8]} />
-        <meshStandardMaterial color="#222" />
-      </mesh>
-      <mesh position={[0.37, 0.29, 0.15]}>
-        <sphereGeometry args={[0.025, 6, 6]} />
-        <meshStandardMaterial color="white" />
-      </mesh>
-      <mesh position={[-0.37, -0.04, 0]} rotation={[0, 0, 0.35]}>
-        <boxGeometry args={[0.22, 0.07, 0.3]} />
-        <meshStandardMaterial color="#CC7700" />
-      </mesh>
     </group>
   );
 }
@@ -284,19 +346,45 @@ function PipePair({
     <group ref={groupRef} position={[15, 0, 0]}>
       <mesh position={[0, topY, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.2, H, 1.2]} />
-        <meshStandardMaterial color="#27ae60" />
+        <meshStandardMaterial
+          color="#27ae60"
+          metalness={0.12}
+          roughness={0.4}
+        />
+      </mesh>
+      {/* Highlight stripe top pipe */}
+      <mesh position={[0.61, topY, 0]}>
+        <boxGeometry args={[0.04, H, 1.2]} />
+        <meshStandardMaterial color="#44cc77" metalness={0.2} roughness={0.3} />
       </mesh>
       <mesh position={[0, gapY + GAP / 2, 0]}>
         <boxGeometry args={[1.55, 0.35, 1.55]} />
-        <meshStandardMaterial color="#2ecc71" />
+        <meshStandardMaterial
+          color="#2ecc71"
+          metalness={0.12}
+          roughness={0.4}
+        />
       </mesh>
       <mesh position={[0, botY, 0]} castShadow receiveShadow>
         <boxGeometry args={[1.2, H, 1.2]} />
-        <meshStandardMaterial color="#27ae60" />
+        <meshStandardMaterial
+          color="#27ae60"
+          metalness={0.12}
+          roughness={0.4}
+        />
+      </mesh>
+      {/* Highlight stripe bottom pipe */}
+      <mesh position={[0.61, botY, 0]}>
+        <boxGeometry args={[0.04, H, 1.2]} />
+        <meshStandardMaterial color="#44cc77" metalness={0.2} roughness={0.3} />
       </mesh>
       <mesh position={[0, gapY - GAP / 2, 0]}>
         <boxGeometry args={[1.55, 0.35, 1.55]} />
-        <meshStandardMaterial color="#2ecc71" />
+        <meshStandardMaterial
+          color="#2ecc71"
+          metalness={0.12}
+          roughness={0.4}
+        />
       </mesh>
     </group>
   );
@@ -476,16 +564,18 @@ function GameScene({
       <directionalLight
         position={[10, 20, 10]}
         castShadow
-        intensity={1.5}
-        shadow-mapSize={[1024, 1024] as unknown as THREE.Vector2}
+        intensity={2.0}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
       />
+      <hemisphereLight args={["#87CEEB", "#4a7c59", 0.35]} />
       <mesh
         position={[0, -10, -5]}
         rotation={[-Math.PI / 2, 0, 0]}
         receiveShadow
       >
         <planeGeometry args={[200, 60]} />
-        <meshStandardMaterial color="#4a7c59" />
+        <meshStandardMaterial color="#4a7a40" roughness={0.95} metalness={0} />
       </mesh>
       {CLOUD_CONFIGS.map((c) => (
         <CloudMesh key={c.id} initPos={c.pos} scale={c.scale} />
@@ -680,7 +770,12 @@ export default function FlappyBird3DGame({ onClose }: { onClose: () => void }) {
           {/* ── 3D Canvas (Dodge + Bird) ── */}
           <Canvas
             shadows
-            dpr={[1, 1.5]}
+            dpr={[1, 2]}
+            gl={{
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.1,
+              antialias: true,
+            }}
             camera={{ fov: 70, position: [0, 0, 8] }}
             style={{ position: "absolute", inset: 0 }}
           >
