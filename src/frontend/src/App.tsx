@@ -44,6 +44,301 @@ import { toast } from "sonner";
 
 import QRCode from "qrcode";
 
+// ── Gradient text inline style helper ────────────────────────────────────────
+const gradientTextStyle: React.CSSProperties = {
+  background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
+};
+
+const qrReadyGradientStyle: React.CSSProperties = {
+  background: "linear-gradient(135deg, #60A5FA, #A78BFA)",
+  WebkitBackgroundClip: "text",
+  WebkitTextFillColor: "transparent",
+  backgroundClip: "text",
+};
+
+// ── QR Success Popup ─────────────────────────────────────────────────────────
+interface QRSuccessPopupProps {
+  qrDataUrl: string;
+  inputText: string;
+  phase: "fireworks" | "options";
+  onClose: () => void;
+  onDone: () => void;
+}
+
+function QRSuccessPopup({
+  qrDataUrl,
+  inputText,
+  phase,
+  onClose,
+  onDone,
+}: QRSuccessPopupProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (phase !== "fireworks") return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+    canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    const W = canvas.offsetWidth;
+    const H = canvas.offsetHeight;
+
+    const COLORS = [
+      "#3B82F6",
+      "#8B5CF6",
+      "#F59E0B",
+      "#EC4899",
+      "#10B981",
+      "#60A5FA",
+      "#A78BFA",
+      "#FCD34D",
+    ];
+
+    interface Particle {
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      color: string;
+      size: number;
+      alpha: number;
+      decay: number;
+    }
+
+    let particles: Particle[] = [];
+    const startTime = Date.now();
+    const DURATION = 2000;
+
+    const burst = (x: number, y: number) => {
+      for (let i = 0; i < 18; i++) {
+        const angle = (i / 18) * Math.PI * 2;
+        const speed = 1.5 + Math.random() * 3;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 1,
+          color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          size: 3 + Math.random() * 3,
+          alpha: 1,
+          decay: 0.015 + Math.random() * 0.015,
+        });
+      }
+    };
+
+    let lastBurst = 0;
+    let animId: number;
+
+    const animate = () => {
+      const elapsed = Date.now() - startTime;
+      ctx.clearRect(0, 0, W, H);
+
+      if (elapsed < DURATION && elapsed - lastBurst > 300) {
+        burst(
+          W * 0.2 + Math.random() * W * 0.6,
+          H * 0.1 + Math.random() * H * 0.5,
+        );
+        lastBurst = elapsed;
+      }
+
+      particles = particles.filter((p) => p.alpha > 0.01);
+      for (const p of particles) {
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fill();
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.08;
+        p.alpha -= p.decay;
+      }
+      ctx.globalAlpha = 1;
+
+      if (elapsed < DURATION || particles.length > 0) {
+        animId = requestAnimationFrame(animate);
+      }
+    };
+
+    burst(W * 0.3, H * 0.4);
+    burst(W * 0.7, H * 0.4);
+    animId = requestAnimationFrame(animate);
+
+    return () => cancelAnimationFrame(animId);
+  }, [phase]);
+
+  const handleDownload = () => {
+    if (!qrDataUrl) return;
+    const a = document.createElement("a");
+    a.href = qrDataUrl;
+    a.download = "qrcode.png";
+    a.click();
+    toast.success("QR code downloaded!");
+  };
+
+  const handleShare = async () => {
+    if (!qrDataUrl) return;
+    try {
+      const res = await fetch(qrDataUrl);
+      const blob = await res.blob();
+      const file = new File([blob], "qrcode.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: "QR Code",
+          text: inputText,
+        });
+      } else {
+        await navigator.clipboard.writeText(inputText);
+        toast.success("Link copied to clipboard!");
+      }
+    } catch {
+      toast.error("Could not share QR code.");
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.60)", backdropFilter: "blur(6px)" }}
+      data-ocid="qr_popup.modal"
+    >
+      <motion.div
+        initial={{ scale: 0.85, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.85, opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 24 }}
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-auto p-6 sm:p-8 overflow-hidden"
+        style={{
+          boxShadow:
+            "0 0 0 1px rgba(147,197,253,0.3), 0 24px 60px rgba(139,92,246,0.22), 0 8px 20px rgba(0,0,0,0.15)",
+        }}
+      >
+        {/* Blue/purple glow border effect */}
+        <div
+          aria-hidden="true"
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "16px",
+            background:
+              "linear-gradient(135deg, rgba(147,197,253,0.15) 0%, rgba(196,181,253,0.10) 100%)",
+            pointerEvents: "none",
+          }}
+        />
+
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute top-3 right-3 p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors z-10"
+          aria-label="Close popup"
+          data-ocid="qr_popup.close_button"
+        >
+          <X className="w-4 h-4" />
+        </button>
+
+        {/* QR Code image */}
+        <div className="flex justify-center mb-4">
+          <div
+            className="p-2 rounded-2xl"
+            style={{
+              background:
+                "linear-gradient(135deg, rgba(147,197,253,0.25), rgba(196,181,253,0.20))",
+              boxShadow: "0 0 24px rgba(139,92,246,0.18)",
+            }}
+          >
+            <img
+              src={qrDataUrl}
+              alt="Generated QR Code"
+              className="w-44 h-44 rounded-xl block"
+              data-ocid="qr_popup.success_state"
+            />
+          </div>
+        </div>
+
+        {/* Fireworks canvas */}
+        {phase === "fireworks" && (
+          <canvas ref={canvasRef} className="qr-popup-canvas mb-3" />
+        )}
+
+        {/* ✨ QR is Ready! */}
+        <div className="text-center mb-2">
+          <p
+            className="text-2xl font-extrabold tracking-tight"
+            style={qrReadyGradientStyle}
+          >
+            ✨ QR is Ready!
+          </p>
+          {phase === "fireworks" && (
+            <p className="text-xs text-gray-400 mt-1">
+              Your QR code has been generated!
+            </p>
+          )}
+        </div>
+
+        {/* Actions */}
+        {phase === "fireworks" ? (
+          <motion.button
+            type="button"
+            onClick={onDone}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            className="mt-4 w-full py-3 rounded-full font-bold text-white text-base tracking-wide"
+            style={{
+              background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+              boxShadow: "0 4px 18px rgba(139,92,246,0.35)",
+            }}
+            data-ocid="qr_popup.confirm_button"
+          >
+            DONE
+          </motion.button>
+        ) : (
+          <div className="mt-4 flex gap-3">
+            <motion.button
+              type="button"
+              onClick={handleDownload}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex-1 py-3 rounded-full font-semibold text-sm flex items-center justify-center gap-2 border-2"
+              style={{
+                borderColor: "#8B5CF6",
+                color: "#8B5CF6",
+              }}
+              data-ocid="qr_popup.secondary_button"
+            >
+              <Download className="w-4 h-4" />
+              Download
+            </motion.button>
+            <motion.button
+              type="button"
+              onClick={handleShare}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex-1 py-3 rounded-full font-semibold text-white text-sm flex items-center justify-center gap-2"
+              style={{
+                background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                boxShadow: "0 4px 14px rgba(139,92,246,0.30)",
+              }}
+              data-ocid="qr_popup.primary_button"
+            >
+              <Share2 className="w-4 h-4" />
+              Share
+            </motion.button>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+}
+
 // ── Inline QR Hero Widget ────────────────────────────────────────────────────
 const DEFAULT_QR_TEXT =
   "https://qr-generator-and-pdf-converter-8y9.caffeine.xyz";
@@ -52,6 +347,10 @@ function HeroQRWidget() {
   const [inputText, setInputText] = useState(DEFAULT_QR_TEXT);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showQRPopup, setShowQRPopup] = useState(false);
+  const [popupPhase, setPopupPhase] = useState<"fireworks" | "options">(
+    "fireworks",
+  );
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Generate on mount with default value
@@ -99,6 +398,8 @@ function HeroQRWidget() {
     } as any)
       .then((url) => {
         setQrDataUrl(url);
+        setPopupPhase("fireworks");
+        setShowQRPopup(true);
       })
       .catch(() => toast.error("Failed to generate QR code."))
       .finally(() => setIsGenerating(false));
@@ -114,72 +415,87 @@ function HeroQRWidget() {
   };
 
   return (
-    <div
-      className="w-full max-w-md mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8"
-      data-ocid="hero.panel"
-    >
-      <div className="space-y-4">
-        {/* Input */}
-        <div>
-          <Input
-            value={inputText}
-            onChange={handleChange}
-            onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
-            placeholder="Enter URL or text..."
-            className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 rounded-xl"
-            data-ocid="hero.input"
-            aria-label="Enter URL or text to generate QR code"
-          />
-        </div>
-
-        {/* Generate button */}
-        <motion.button
-          type="button"
-          onClick={handleGenerate}
-          disabled={isGenerating}
-          whileHover={{ scale: isGenerating ? 1 : 1.03 }}
-          whileTap={{ scale: isGenerating ? 1 : 0.97 }}
-          className="w-full h-12 rounded-xl font-semibold text-white text-base flex items-center justify-center gap-2 disabled:opacity-80 disabled:cursor-not-allowed"
-          style={{
-            background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-            boxShadow: "0 4px 14px rgba(139,92,246,0.25)",
-          }}
-          data-ocid="hero.primary_button"
-        >
-          {isGenerating ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Generating...
-            </>
-          ) : (
-            "Generate QR Code"
-          )}
-        </motion.button>
-
-        {/* QR Preview */}
-        {qrDataUrl && (
-          <div className="flex flex-col items-center gap-3 pt-2">
-            <img
-              src={qrDataUrl}
-              alt="Generated QR Code"
-              className="w-48 h-48 rounded-xl border border-gray-100 shadow-sm"
-              data-ocid="hero.success_state"
+    <>
+      <div
+        className="w-full max-w-md mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8"
+        data-ocid="hero.panel"
+      >
+        <div className="space-y-4">
+          {/* Input */}
+          <div>
+            <Input
+              value={inputText}
+              onChange={handleChange}
+              onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
+              placeholder="Enter URL or text..."
+              className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 rounded-xl"
+              data-ocid="hero.input"
+              aria-label="Enter URL or text to generate QR code"
             />
-            <motion.button
-              type="button"
-              onClick={handleDownload}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
-              data-ocid="hero.secondary_button"
-            >
-              <Download className="w-4 h-4" />
-              Download QR Code
-            </motion.button>
           </div>
-        )}
+
+          {/* Generate button */}
+          <motion.button
+            type="button"
+            onClick={handleGenerate}
+            disabled={isGenerating}
+            whileHover={{ scale: isGenerating ? 1 : 1.03 }}
+            whileTap={{ scale: isGenerating ? 1 : 0.97 }}
+            className="w-full h-12 rounded-xl font-semibold text-white text-base flex items-center justify-center gap-2 disabled:opacity-80 disabled:cursor-not-allowed"
+            style={{
+              background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+              boxShadow: "0 4px 14px rgba(139,92,246,0.25)",
+            }}
+            data-ocid="hero.primary_button"
+          >
+            {isGenerating ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Generating...
+              </>
+            ) : (
+              "Generate QR Code"
+            )}
+          </motion.button>
+
+          {/* QR Preview */}
+          {qrDataUrl && (
+            <div className="flex flex-col items-center gap-3 pt-2">
+              <img
+                src={qrDataUrl}
+                alt="Generated QR Code"
+                className="w-48 h-48 rounded-xl border border-gray-100 shadow-sm"
+                data-ocid="hero.success_state"
+              />
+              <motion.button
+                type="button"
+                onClick={handleDownload}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+                data-ocid="hero.secondary_button"
+              >
+                <Download className="w-4 h-4" />
+                Download QR Code
+              </motion.button>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+
+      {/* QR Success Popup */}
+      <AnimatePresence>
+        {showQRPopup && qrDataUrl && (
+          <QRSuccessPopup
+            qrDataUrl={qrDataUrl}
+            inputText={inputText}
+            phase={popupPhase}
+            onClose={() => setShowQRPopup(false)}
+            onDone={() => setPopupPhase("options")}
+          />
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
@@ -413,626 +729,774 @@ export default function App() {
   const ActiveToolComponent = activeTool ? ToolComponents[activeTool] : null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans">
-      <Toaster position="top-right" />
+    <div className="min-h-screen bg-[#F8FAFC] font-sans relative">
+      {/* ── Ambient orbs ── */}
+      {/* Orb 1: top-left, light blue */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          top: "-60px",
+          left: "-80px",
+          width: "400px",
+          height: "400px",
+          borderRadius: "50%",
+          background: "#BFDBFE",
+          opacity: 0.38,
+          filter: "blur(80px)",
+          pointerEvents: "none",
+          zIndex: 0,
+          animation: "floatOrb 25s ease-in-out infinite alternate",
+        }}
+      />
+      {/* Orb 2: top-right, light purple */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          top: "40px",
+          right: "-60px",
+          width: "300px",
+          height: "300px",
+          borderRadius: "50%",
+          background: "#DDD6FE",
+          opacity: 0.3,
+          filter: "blur(80px)",
+          pointerEvents: "none",
+          zIndex: 0,
+          animation: "floatOrb 30s ease-in-out infinite alternate-reverse",
+        }}
+      />
+      {/* Orb 3: bottom-center, blue-purple */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          bottom: "-80px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "350px",
+          height: "350px",
+          borderRadius: "50%",
+          background: "#C7D2FE",
+          opacity: 0.25,
+          filter: "blur(80px)",
+          pointerEvents: "none",
+          zIndex: 0,
+          animation: "floatOrb 22s ease-in-out infinite alternate",
+        }}
+      />
+      {/* Extra orb: bottom-left purple */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          bottom: "-40px",
+          left: "-60px",
+          width: "280px",
+          height: "280px",
+          borderRadius: "50%",
+          background: "#E9D5FF",
+          opacity: 0.3,
+          filter: "blur(70px)",
+          pointerEvents: "none",
+          zIndex: 0,
+          animation: "floatOrb 28s ease-in-out infinite alternate",
+        }}
+      />
+      {/* Extra orb: bottom-right blue */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          bottom: "-40px",
+          right: "-60px",
+          width: "280px",
+          height: "280px",
+          borderRadius: "50%",
+          background: "#BAE6FD",
+          opacity: 0.28,
+          filter: "blur(70px)",
+          pointerEvents: "none",
+          zIndex: 0,
+          animation: "floatOrb 32s ease-in-out infinite alternate-reverse",
+        }}
+      />
 
-      {/* ── Navbar ── */}
-      <header
-        className="sticky top-0 z-50 bg-white border-b border-gray-100"
-        data-ocid="nav.panel"
-      >
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-          {/* Logo */}
-          <button
-            type="button"
-            className="flex items-center"
-            onClick={() => scrollTo("home")}
-            data-ocid="nav.link"
-          >
-            <img
-              src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
-              alt="QR & PDF Tools Logo"
-              className="h-8 w-auto object-contain"
-            />
-          </button>
+      {/* ── Main content wrapper above orbs ── */}
+      <div className="relative z-10">
+        <Toaster position="top-right" />
 
-          {/* Desktop nav */}
-          <nav
-            className="hidden md:flex items-center gap-6"
-            aria-label="Main navigation"
-          >
-            {(["home", "tools", "contact"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => scrollTo(s)}
-                className="capitalize text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
-                data-ocid={`nav.${s}.link` as never}
-              >
-                {s}
-              </button>
-            ))}
+        {/* ── Navbar ── */}
+        <header
+          className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-blue-100/60"
+          data-ocid="nav.panel"
+        >
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+            {/* Logo */}
             <button
               type="button"
+              className="flex items-center"
               onClick={() => scrollTo("home")}
-              className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
-              style={{
-                background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-              }}
-              data-ocid="nav.primary_button"
+              data-ocid="nav.link"
             >
-              Generate QR
-            </button>
-          </nav>
-
-          {/* Mobile hamburger */}
-          <button
-            type="button"
-            className="md:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle navigation menu"
-            data-ocid="nav.toggle"
-          >
-            {mobileMenuOpen ? (
-              <X className="w-5 h-5" />
-            ) : (
-              <Menu className="w-5 h-5" />
-            )}
-          </button>
-        </div>
-
-        {/* Mobile menu */}
-        <AnimatePresence>
-          {mobileMenuOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="md:hidden overflow-hidden bg-white border-t border-gray-100"
-            >
-              <div className="px-4 py-3 flex flex-col gap-1">
-                {(["home", "tools", "contact"] as const).map((s) => (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => scrollTo(s)}
-                    className="capitalize text-sm font-medium text-gray-700 text-left py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"
-                    data-ocid={`nav.mobile.${s}.link` as never}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </header>
-
-      <main>
-        {/* ── Section 1: Hero + Inline QR Tool ── */}
-        <section
-          id="home"
-          className="py-6 sm:py-8 px-4"
-          data-ocid="hero.section"
-        >
-          <div className="max-w-lg mx-auto text-center">
-            {/* Small heading */}
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
-              Free QR Code Generator
-            </h1>
-            <p className="text-sm text-gray-400 mb-6">
-              Fast • Secure • No Login Required
-            </p>
-
-            {/* Inline QR Tool Widget */}
-            <HeroQRWidget />
-          </div>
-        </section>
-
-        {/* ── Section 2: All Tools Grid ── */}
-        <section
-          id="tools"
-          className="py-14 sm:py-16 px-4 bg-white border-t border-gray-100"
-          data-ocid="tools.section"
-        >
-          <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-                All Tools
-              </h2>
-              <p className="text-sm text-gray-500">
-                Five powerful tools, completely free.
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-              {TOOLS.map((tool, i) => (
-                <ToolCard
-                  key={tool.id}
-                  tool={tool}
-                  index={i}
-                  onOpen={() => openTool(tool.id)}
-                />
-              ))}
-            </div>
-
-            {/* Tool panel */}
-            <AnimatePresence>
-              {activeTool && ActiveToolComponent && (
-                <motion.div
-                  id="tool-panel"
-                  key={activeTool}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 8 }}
-                  transition={{ duration: 0.2 }}
-                  className="mt-4"
-                  data-ocid="tools.panel"
-                >
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 relative">
-                    <button
-                      type="button"
-                      onClick={() => setActiveTool(null)}
-                      className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
-                      aria-label="Close tool"
-                      data-ocid="tools.close_button"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                    <ActiveToolComponent />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </section>
-
-        {/* ── Section 3: Why Choose Us ── */}
-        <section className="py-14 sm:py-16 px-4 bg-[#F8FAFC] border-t border-gray-100">
-          <div className="max-w-5xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-                Why Choose Us
-              </h2>
-              <p className="text-sm text-gray-500">
-                Everything you need, nothing you don't.
-              </p>
-            </motion.div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {WHY_CHOOSE_US.map((item, i) => (
-                <motion.div
-                  key={item.title}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.07 }}
-                  className="tool-card bg-white rounded-xl border border-gray-100 shadow-sm p-5 text-center"
-                  data-ocid={`why.item.${i + 1}` as never}
-                >
-                  <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3 ${item.color}`}
-                  >
-                    <span className="text-xl">{item.emoji}</span>
-                  </div>
-                  <h3 className="font-semibold text-sm text-gray-900 mb-1">
-                    {item.title}
-                  </h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    {item.desc}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 4: How It Works ── */}
-        <section className="py-14 sm:py-16 px-4 bg-white border-t border-gray-100">
-          <div className="max-w-3xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-                How It Works
-              </h2>
-              <p className="text-sm text-gray-500">
-                Three simple steps to get your result
-              </p>
-            </motion.div>
-
-            <div className="grid sm:grid-cols-3 gap-6">
-              {HOW_IT_WORKS.map((step, i) => (
-                <motion.div
-                  key={step.step}
-                  initial={{ opacity: 0, y: 16 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.08 }}
-                  className="text-center"
-                >
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
-                    <step.icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-500">
-                    Step {step.step}
-                  </span>
-                  <h3 className="font-semibold text-sm text-gray-900 mt-1 mb-1">
-                    {step.title}
-                  </h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">
-                    {step.desc}
-                  </p>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Section 5: Feature Strip ── */}
-        <section className="py-10 px-4 bg-[#F8FAFC] border-t border-gray-100">
-          <div className="max-w-3xl mx-auto">
-            <div className="grid sm:grid-cols-3 gap-5">
-              {FEATURES.map((feat, i) => (
-                <motion.div
-                  key={feat.title}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: i * 0.06 }}
-                  className="flex gap-3 items-start"
-                >
-                  <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${feat.colorClass}`}
-                  >
-                    <feat.icon className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-sm text-gray-900 mb-0.5">
-                      {feat.title}
-                    </h4>
-                    <p className="text-xs text-gray-500 leading-relaxed">
-                      {feat.desc}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ── Bottom CTA ── */}
-        <section className="py-14 px-4 bg-white border-t border-gray-100 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-md mx-auto"
-          >
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
-              Start Creating QR Codes Now
-            </h2>
-            <p className="text-sm text-gray-500 mb-6">
-              Free, fast, and works entirely in your browser.
-            </p>
-            <motion.button
-              type="button"
-              onClick={() => scrollTo("home")}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-xl text-base"
-              style={{
-                background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-              }}
-              data-ocid="cta.primary_button"
-            >
-              Generate QR Code
-            </motion.button>
-          </motion.div>
-        </section>
-
-        {/* ── Contact Section ── */}
-        <section
-          id="contact"
-          className="py-14 sm:py-16 px-4 bg-[#F8FAFC] border-t border-gray-100"
-        >
-          <div className="max-w-md mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-8"
-            >
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
-                Contact Us
-              </h2>
-              <p className="text-sm text-gray-500">
-                Have a question or feedback? We'd love to hear from you.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8"
-            >
-              <form onSubmit={handleContactSubmit} className="space-y-4">
-                <div>
-                  <Label
-                    htmlFor="contact-name"
-                    className="mb-1.5 block text-sm text-gray-700"
-                  >
-                    Name
-                  </Label>
-                  <Input
-                    id="contact-name"
-                    placeholder="Your name"
-                    value={contactForm.name}
-                    onChange={(e) =>
-                      setContactForm((p) => ({ ...p, name: e.target.value }))
-                    }
-                    data-ocid="contact.input"
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="contact-email"
-                    className="mb-1.5 block text-sm text-gray-700"
-                  >
-                    Email
-                  </Label>
-                  <Input
-                    id="contact-email"
-                    type="email"
-                    placeholder="your@email.com"
-                    value={contactForm.email}
-                    onChange={(e) =>
-                      setContactForm((p) => ({ ...p, email: e.target.value }))
-                    }
-                    data-ocid="contact.input"
-                  />
-                </div>
-                <div>
-                  <Label
-                    htmlFor="contact-message"
-                    className="mb-1.5 block text-sm text-gray-700"
-                  >
-                    Message
-                  </Label>
-                  <Textarea
-                    id="contact-message"
-                    placeholder="How can we help?"
-                    rows={4}
-                    value={contactForm.message}
-                    onChange={(e) =>
-                      setContactForm((p) => ({ ...p, message: e.target.value }))
-                    }
-                    data-ocid="contact.textarea"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  className="w-full font-semibold rounded-xl"
-                  style={{
-                    background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
-                    border: "none",
-                  }}
-                  disabled={contactLoading}
-                  data-ocid="contact.submit_button"
-                >
-                  {contactLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Message"
-                  )}
-                </Button>
-              </form>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* ── SEO Accordion ── */}
-        <section className="py-12 px-4 bg-white border-t border-gray-100">
-          <div className="max-w-2xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-            >
-              <Accordion type="single" collapsible className="w-full space-y-2">
-                {SEO_CONTENT.map((item) => (
-                  <AccordionItem
-                    key={item.value}
-                    value={item.value}
-                    className="bg-white rounded-xl border border-gray-100 px-5"
-                  >
-                    <AccordionTrigger className="font-semibold text-sm text-gray-900 hover:no-underline py-4">
-                      {item.trigger}
-                    </AccordionTrigger>
-                    <AccordionContent className="text-sm text-gray-500 leading-relaxed pb-4">
-                      {item.content}
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
-            </motion.div>
-          </div>
-        </section>
-      </main>
-
-      {/* ── Footer ── */}
-      <footer className="py-10 bg-gray-900 border-t border-gray-800">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
-          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mb-8">
-            {/* Brand */}
-            <div className="md:col-span-2">
               <img
                 src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
                 alt="QR & PDF Tools Logo"
-                className="h-8 w-auto object-contain mb-3"
-                style={{ filter: "brightness(0) invert(1)" }}
+                className="h-8 w-auto object-contain"
               />
-              <p className="text-xs text-gray-400 max-w-xs leading-relaxed">
-                Free online tools for QR code generation and PDF conversion.
-                Works entirely in your browser with no data collection.
+            </button>
+
+            {/* Desktop nav */}
+            <nav
+              className="hidden md:flex items-center gap-6"
+              aria-label="Main navigation"
+            >
+              {(["home", "tools", "contact"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => scrollTo(s)}
+                  className="capitalize text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                  data-ocid={`nav.${s}.link` as never}
+                >
+                  {s}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => scrollTo("home")}
+                className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
+                style={{
+                  background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                }}
+                data-ocid="nav.primary_button"
+              >
+                Generate QR
+              </button>
+            </nav>
+
+            {/* Mobile hamburger */}
+            <button
+              type="button"
+              className="md:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label="Toggle navigation menu"
+              data-ocid="nav.toggle"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
+            </button>
+          </div>
+
+          {/* Mobile menu */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="md:hidden overflow-hidden bg-white border-t border-gray-100"
+              >
+                <div className="px-4 py-3 flex flex-col gap-1">
+                  {(["home", "tools", "contact"] as const).map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => scrollTo(s)}
+                      className="capitalize text-sm font-medium text-gray-700 text-left py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"
+                      data-ocid={`nav.mobile.${s}.link` as never}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </header>
+
+        <main>
+          {/* ── Section 1: Hero + Inline QR Tool ── */}
+          <section
+            id="home"
+            className="py-6 sm:py-8 px-4"
+            data-ocid="hero.section"
+          >
+            <div className="max-w-lg mx-auto text-center">
+              {/* Small heading with gradient */}
+              <h1
+                className="text-2xl sm:text-3xl font-bold mb-1"
+                style={gradientTextStyle}
+              >
+                Free QR Code Generator
+              </h1>
+              <p className="text-sm mb-4" style={{ color: "#7C9FD8" }}>
+                Fast • Secure • No Login Required
+              </p>
+
+              {/* VISIT OUR TOOLS! banner */}
+              <div className="mb-5">
+                <button
+                  type="button"
+                  onClick={() => scrollTo("tools")}
+                  className="inline-block px-6 py-2.5 rounded-full font-bold text-lg tracking-wide border-2 border-transparent hover:scale-105 active:scale-95 transition-transform cursor-pointer"
+                  style={{
+                    background:
+                      "linear-gradient(white, white) padding-box, linear-gradient(135deg, #3B82F6, #8B5CF6) border-box",
+                    WebkitBackgroundClip: "unset",
+                    backgroundClip: "unset",
+                  }}
+                  data-ocid="hero.button"
+                >
+                  <span
+                    style={{
+                      background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    VISIT OUR TOOLS!
+                  </span>
+                </button>
+              </div>
+
+              {/* Inline QR Tool Widget */}
+              <HeroQRWidget />
+            </div>
+          </section>
+
+          {/* ── Section 2: All Tools Grid ── */}
+          <section
+            id="tools"
+            className="py-14 sm:py-16 px-4 bg-white/70 border-t border-blue-100/40"
+            data-ocid="tools.section"
+          >
+            <div className="max-w-5xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center mb-8"
+              >
+                <h2
+                  className="text-xl sm:text-2xl font-bold mb-1"
+                  style={gradientTextStyle}
+                >
+                  All Tools
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Five powerful tools, completely free.
+                </p>
+              </motion.div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+                {TOOLS.map((tool, i) => (
+                  <ToolCard
+                    key={tool.id}
+                    tool={tool}
+                    index={i}
+                    onOpen={() => openTool(tool.id)}
+                  />
+                ))}
+              </div>
+
+              {/* Tool panel */}
+              <AnimatePresence>
+                {activeTool && ActiveToolComponent && (
+                  <motion.div
+                    id="tool-panel"
+                    key={activeTool}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-4"
+                    data-ocid="tools.panel"
+                  >
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 relative">
+                      <button
+                        type="button"
+                        onClick={() => setActiveTool(null)}
+                        className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                        aria-label="Close tool"
+                        data-ocid="tools.close_button"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      <ActiveToolComponent />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </section>
+
+          {/* ── Section 3: Why Choose Us ── */}
+          <section className="py-14 sm:py-16 px-4 border-t border-purple-100/40">
+            <div className="max-w-5xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center mb-8"
+              >
+                <h2
+                  className="text-xl sm:text-2xl font-bold mb-1"
+                  style={gradientTextStyle}
+                >
+                  Why Choose Us
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Everything you need, nothing you don't.
+                </p>
+              </motion.div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {WHY_CHOOSE_US.map((item, i) => (
+                  <motion.div
+                    key={item.title}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.07 }}
+                    className="tool-card bg-white rounded-xl border border-gray-100 shadow-sm p-5 text-center"
+                    data-ocid={`why.item.${i + 1}` as never}
+                  >
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3 ${item.color}`}
+                    >
+                      <span className="text-xl">{item.emoji}</span>
+                    </div>
+                    <h3 className="font-semibold text-sm text-gray-900 mb-1">
+                      {item.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      {item.desc}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ── Section 4: How It Works ── */}
+          <section className="py-14 sm:py-16 px-4 bg-white/70 border-t border-blue-100/40">
+            <div className="max-w-3xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center mb-8"
+              >
+                <h2
+                  className="text-xl sm:text-2xl font-bold mb-1"
+                  style={gradientTextStyle}
+                >
+                  How It Works
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Three simple steps to get your result
+                </p>
+              </motion.div>
+
+              <div className="grid sm:grid-cols-3 gap-6">
+                {HOW_IT_WORKS.map((step, i) => (
+                  <motion.div
+                    key={step.step}
+                    initial={{ opacity: 0, y: 16 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.08 }}
+                    className="text-center"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+                      <step.icon className="w-5 h-5" />
+                    </div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-blue-500">
+                      Step {step.step}
+                    </span>
+                    <h3 className="font-semibold text-sm text-gray-900 mt-1 mb-1">
+                      {step.title}
+                    </h3>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ── Section 5: Feature Strip ── */}
+          <section className="py-10 px-4 border-t border-purple-100/40">
+            <div className="max-w-3xl mx-auto">
+              <div className="grid sm:grid-cols-3 gap-5">
+                {FEATURES.map((feat, i) => (
+                  <motion.div
+                    key={feat.title}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.06 }}
+                    className="flex gap-3 items-start"
+                  >
+                    <div
+                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${feat.colorClass}`}
+                    >
+                      <feat.icon className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-sm text-gray-900 mb-0.5">
+                        {feat.title}
+                      </h4>
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        {feat.desc}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          {/* ── Bottom CTA ── */}
+          <section className="py-14 px-4 bg-white/70 border-t border-blue-100/40 text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="max-w-md mx-auto"
+            >
+              <h2
+                className="text-xl sm:text-2xl font-bold mb-2"
+                style={gradientTextStyle}
+              >
+                Start Creating QR Codes Now
+              </h2>
+              <p className="text-sm text-gray-500 mb-6">
+                Free, fast, and works entirely in your browser.
+              </p>
+              <motion.button
+                type="button"
+                onClick={() => scrollTo("home")}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-xl text-base"
+                style={{
+                  background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                }}
+                data-ocid="cta.primary_button"
+              >
+                Generate QR Code
+              </motion.button>
+            </motion.div>
+          </section>
+
+          {/* ── Contact Section ── */}
+          <section
+            id="contact"
+            className="py-14 sm:py-16 px-4 border-t border-purple-100/40"
+          >
+            <div className="max-w-md mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-center mb-8"
+              >
+                <h2
+                  className="text-xl sm:text-2xl font-bold mb-1"
+                  style={gradientTextStyle}
+                >
+                  Contact Us
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Have a question or feedback? We'd love to hear from you.
+                </p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8"
+              >
+                <form onSubmit={handleContactSubmit} className="space-y-4">
+                  <div>
+                    <Label
+                      htmlFor="contact-name"
+                      className="mb-1.5 block text-sm text-gray-700"
+                    >
+                      Name
+                    </Label>
+                    <Input
+                      id="contact-name"
+                      placeholder="Your name"
+                      value={contactForm.name}
+                      onChange={(e) =>
+                        setContactForm((p) => ({ ...p, name: e.target.value }))
+                      }
+                      data-ocid="contact.input"
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="contact-email"
+                      className="mb-1.5 block text-sm text-gray-700"
+                    >
+                      Email
+                    </Label>
+                    <Input
+                      id="contact-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      value={contactForm.email}
+                      onChange={(e) =>
+                        setContactForm((p) => ({ ...p, email: e.target.value }))
+                      }
+                      data-ocid="contact.input"
+                    />
+                  </div>
+                  <div>
+                    <Label
+                      htmlFor="contact-message"
+                      className="mb-1.5 block text-sm text-gray-700"
+                    >
+                      Message
+                    </Label>
+                    <Textarea
+                      id="contact-message"
+                      placeholder="How can we help?"
+                      rows={4}
+                      value={contactForm.message}
+                      onChange={(e) =>
+                        setContactForm((p) => ({
+                          ...p,
+                          message: e.target.value,
+                        }))
+                      }
+                      data-ocid="contact.textarea"
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full font-semibold rounded-xl"
+                    style={{
+                      background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+                      border: "none",
+                    }}
+                    disabled={contactLoading}
+                    data-ocid="contact.submit_button"
+                  >
+                    {contactLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                        Sending...
+                      </>
+                    ) : (
+                      "Send Message"
+                    )}
+                  </Button>
+                </form>
+              </motion.div>
+            </div>
+          </section>
+
+          {/* ── SEO Accordion ── */}
+          <section className="py-12 px-4 bg-white/70 border-t border-blue-100/40">
+            <div className="max-w-2xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+              >
+                <Accordion
+                  type="single"
+                  collapsible
+                  className="w-full space-y-2"
+                >
+                  {SEO_CONTENT.map((item) => (
+                    <AccordionItem
+                      key={item.value}
+                      value={item.value}
+                      className="bg-white rounded-xl border border-gray-100 px-5"
+                    >
+                      <AccordionTrigger className="font-semibold text-sm text-gray-900 hover:no-underline py-4">
+                        {item.trigger}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-sm text-gray-500 leading-relaxed pb-4">
+                        {item.content}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </motion.div>
+            </div>
+          </section>
+        </main>
+
+        {/* ── Footer ── */}
+        <footer className="py-10 bg-gray-900 border-t border-gray-800">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mb-8">
+              {/* Brand */}
+              <div className="md:col-span-2">
+                <img
+                  src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
+                  alt="QR & PDF Tools Logo"
+                  className="h-8 w-auto object-contain mb-3"
+                  style={{ filter: "brightness(0) invert(1)" }}
+                />
+                <p className="text-xs text-gray-400 max-w-xs leading-relaxed">
+                  Free online tools for QR code generation and PDF conversion.
+                  Works entirely in your browser with no data collection.
+                </p>
+              </div>
+
+              {/* Company */}
+              <div>
+                <h5 className="font-semibold text-sm text-gray-300 mb-3">
+                  Company
+                </h5>
+                <ul className="space-y-2">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => scrollTo("contact")}
+                      className="text-xs text-gray-400 hover:text-white transition-colors"
+                    >
+                      Contact
+                    </button>
+                  </li>
+                  <li>
+                    <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
+                      <DialogTrigger asChild>
+                        <button
+                          type="button"
+                          className="text-xs text-gray-400 hover:text-white transition-colors"
+                          data-ocid="footer.privacy.open_modal_button"
+                        >
+                          Privacy Policy
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="font-bold">
+                            Privacy Policy
+                          </DialogTitle>
+                          <DialogDescription>
+                            Last updated: {new Date().getFullYear()}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
+                          <p>
+                            <strong>No Data Collection.</strong> We do not
+                            collect, store, or share any personal data or files.
+                            All processing happens entirely within your browser.
+                          </p>
+                          <p>
+                            <strong>Google Analytics.</strong> We use Google
+                            Analytics (measurement ID: G-X56VJ2MNZQ) to
+                            understand how visitors use our site.
+                          </p>
+                          <p>
+                            <strong>Cookies.</strong> We use only the analytical
+                            cookies set by Google Analytics.
+                          </p>
+                          <p>
+                            <strong>Third-Party Services.</strong> Apart from
+                            Google Analytics, we do not integrate any
+                            third-party services that collect user data.
+                          </p>
+                        </div>
+                        <div className="flex justify-end pt-2">
+                          <Button
+                            size="sm"
+                            onClick={() => setPrivacyOpen(false)}
+                            data-ocid="footer.privacy.close_button"
+                          >
+                            Close
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </li>
+                  <li>
+                    <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+                      <DialogTrigger asChild>
+                        <button
+                          type="button"
+                          className="text-xs text-gray-400 hover:text-white transition-colors"
+                          data-ocid="footer.terms.open_modal_button"
+                        >
+                          Terms and Conditions
+                        </button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                        <DialogHeader>
+                          <DialogTitle className="font-bold">
+                            Terms and Conditions
+                          </DialogTitle>
+                          <DialogDescription>
+                            Last updated: {new Date().getFullYear()}
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
+                          <p>
+                            <strong>Acceptance of Terms.</strong> By using QR
+                            &amp; PDF Tools, you agree to these Terms and
+                            Conditions.
+                          </p>
+                          <p>
+                            <strong>Use of Tools.</strong> Our tools are
+                            provided for personal, non-commercial use.
+                          </p>
+                          <p>
+                            <strong>Limitation of Liability.</strong> To the
+                            fullest extent permitted by law, we shall not be
+                            liable for any indirect or consequential damages.
+                          </p>
+                        </div>
+                        <div className="flex justify-end pt-2">
+                          <Button
+                            size="sm"
+                            onClick={() => setTermsOpen(false)}
+                            data-ocid="footer.terms.close_button"
+                          >
+                            Close
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-800 pt-6 text-center">
+              <p className="text-xs text-gray-500">
+                &copy; {new Date().getFullYear()}. MADE BY B.VEDANT &mdash;{" "}
+                <a
+                  href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== "undefined" ? window.location.hostname : "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-400 hover:text-gray-200 transition-colors"
+                >
+                  Built with caffeine.ai
+                </a>
               </p>
             </div>
-
-            {/* Company */}
-            <div>
-              <h5 className="font-semibold text-sm text-gray-300 mb-3">
-                Company
-              </h5>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => scrollTo("contact")}
-                    className="text-xs text-gray-400 hover:text-white transition-colors"
-                  >
-                    Contact
-                  </button>
-                </li>
-                <li>
-                  <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
-                    <DialogTrigger asChild>
-                      <button
-                        type="button"
-                        className="text-xs text-gray-400 hover:text-white transition-colors"
-                        data-ocid="footer.privacy.open_modal_button"
-                      >
-                        Privacy Policy
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="font-bold">
-                          Privacy Policy
-                        </DialogTitle>
-                        <DialogDescription>
-                          Last updated: {new Date().getFullYear()}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
-                        <p>
-                          <strong>No Data Collection.</strong> We do not
-                          collect, store, or share any personal data or files.
-                          All processing happens entirely within your browser.
-                        </p>
-                        <p>
-                          <strong>Google Analytics.</strong> We use Google
-                          Analytics (measurement ID: G-X56VJ2MNZQ) to understand
-                          how visitors use our site.
-                        </p>
-                        <p>
-                          <strong>Cookies.</strong> We use only the analytical
-                          cookies set by Google Analytics.
-                        </p>
-                        <p>
-                          <strong>Third-Party Services.</strong> Apart from
-                          Google Analytics, we do not integrate any third-party
-                          services that collect user data.
-                        </p>
-                      </div>
-                      <div className="flex justify-end pt-2">
-                        <Button
-                          size="sm"
-                          onClick={() => setPrivacyOpen(false)}
-                          data-ocid="footer.privacy.close_button"
-                        >
-                          Close
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </li>
-                <li>
-                  <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
-                    <DialogTrigger asChild>
-                      <button
-                        type="button"
-                        className="text-xs text-gray-400 hover:text-white transition-colors"
-                        data-ocid="footer.terms.open_modal_button"
-                      >
-                        Terms and Conditions
-                      </button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle className="font-bold">
-                          Terms and Conditions
-                        </DialogTitle>
-                        <DialogDescription>
-                          Last updated: {new Date().getFullYear()}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
-                        <p>
-                          <strong>Acceptance of Terms.</strong> By using QR
-                          &amp; PDF Tools, you agree to these Terms and
-                          Conditions.
-                        </p>
-                        <p>
-                          <strong>Use of Tools.</strong> Our tools are provided
-                          for personal, non-commercial use.
-                        </p>
-                        <p>
-                          <strong>Limitation of Liability.</strong> To the
-                          fullest extent permitted by law, we shall not be
-                          liable for any indirect or consequential damages.
-                        </p>
-                      </div>
-                      <div className="flex justify-end pt-2">
-                        <Button
-                          size="sm"
-                          onClick={() => setTermsOpen(false)}
-                          data-ocid="footer.terms.close_button"
-                        >
-                          Close
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </li>
-              </ul>
-            </div>
           </div>
+        </footer>
 
-          <div className="border-t border-gray-800 pt-6 text-center">
-            <p className="text-xs text-gray-500">
-              &copy; {new Date().getFullYear()}. MADE BY B.VEDANT &mdash;{" "}
-              <a
-                href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== "undefined" ? window.location.hostname : "")}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-400 hover:text-gray-200 transition-colors"
-              >
-                Built with caffeine.ai
-              </a>
-            </p>
-          </div>
-        </div>
-      </footer>
-
-      <SideGames />
+        <SideGames />
+      </div>
     </div>
   );
 }
