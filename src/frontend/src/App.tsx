@@ -1,4 +1,3 @@
-import ClickEffects from "@/components/ClickEffects";
 import SideGames from "@/components/SideGames";
 import {
   Accordion,
@@ -365,6 +364,7 @@ const DEFAULT_QR_TEXT =
 function HeroQRWidget() {
   const [inputText, setInputText] = useState(DEFAULT_QR_TEXT);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Generate on mount with default value
@@ -390,7 +390,13 @@ function HeroQRWidget() {
     debounceRef.current = setTimeout(() => regenerate(val), 150);
   };
 
-  const handleGenerate = () => regenerate(inputText);
+  const handleGenerate = () => {
+    setIsGenerating(true);
+    setTimeout(() => {
+      regenerate(inputText);
+      setIsGenerating(false);
+    }, 600);
+  };
 
   const handleDownload = () => {
     if (!qrDataUrl) return;
@@ -424,15 +430,24 @@ function HeroQRWidget() {
         <motion.button
           type="button"
           onClick={handleGenerate}
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="w-full h-12 rounded-xl font-semibold text-white text-base"
+          disabled={isGenerating}
+          whileHover={{ scale: isGenerating ? 1 : 1.03 }}
+          whileTap={{ scale: isGenerating ? 1 : 0.97 }}
+          className="w-full h-12 rounded-xl font-semibold text-white text-base flex items-center justify-center gap-2 disabled:opacity-80 disabled:cursor-not-allowed"
           style={{
-            background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+            background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
+            boxShadow: "0 4px 14px rgba(139,92,246,0.25)",
           }}
           data-ocid="hero.primary_button"
         >
-          Generate QR Code
+          {isGenerating ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            "Generate QR Code"
+          )}
         </motion.button>
 
         {/* QR Preview */}
@@ -486,6 +501,7 @@ function ToolCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay: index * 0.05 }}
+      whileHover={{ y: -2 }}
       className="tool-card bg-white rounded-xl border border-gray-100 shadow-sm p-5 cursor-pointer"
       onClick={onOpen}
       data-ocid={`tools.item.${index + 1}` as never}
@@ -692,7 +708,6 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] font-sans">
-      <ClickEffects />
       <Toaster position="top-right" />
 
       {/* ── Navbar ── */}
@@ -736,7 +751,7 @@ export default function App() {
               onClick={() => scrollTo("home")}
               className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
               style={{
-                background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+                background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
               }}
               data-ocid="nav.primary_button"
             >
@@ -792,7 +807,7 @@ export default function App() {
         {/* ── Section 1: Hero + Inline QR Tool ── */}
         <section
           id="home"
-          className="py-10 sm:py-14 px-4"
+          className="py-6 sm:py-8 px-4"
           data-ocid="hero.section"
         >
           <div className="max-w-lg mx-auto text-center">
@@ -1015,7 +1030,7 @@ export default function App() {
               whileTap={{ scale: 0.97 }}
               className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-xl text-base"
               style={{
-                background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+                background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
               }}
               data-ocid="cta.primary_button"
             >
@@ -1108,7 +1123,7 @@ export default function App() {
                   type="submit"
                   className="w-full font-semibold rounded-xl"
                   style={{
-                    background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+                    background: "linear-gradient(135deg, #3B82F6, #8B5CF6)",
                     border: "none",
                   }}
                   disabled={contactLoading}

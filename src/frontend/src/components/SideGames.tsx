@@ -20,32 +20,29 @@ export default function SideGames() {
         data-ocid="sidegames.toggle"
         style={{
           position: "fixed",
-          right: sidebarOpen ? "280px" : "0px",
-          top: "50%",
-          transform: "translateY(-50%)",
+          right: "0px",
+          bottom: "20px",
           zIndex: 1001,
           background: "rgba(255,255,255,0.15)",
           backdropFilter: "blur(12px)",
-          border: "1px solid rgba(59,130,246,0.4)",
-          borderRight: sidebarOpen ? "1px solid rgba(59,130,246,0.4)" : "none",
+          border: "1px solid rgba(59,130,246,0.25)",
+          borderRight: "none",
           borderRadius: "12px 0 0 12px",
-          padding: "12px 8px",
+          padding: "8px 6px",
           cursor: "pointer",
-          boxShadow:
-            "0 0 20px rgba(59,130,246,0.3), inset 0 0 10px rgba(59,130,246,0.05)",
-          transition: "right 0.3s ease, box-shadow 0.3s ease",
+          transition: "opacity 0.2s ease",
           color: "#1D4ED8",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: "4px",
+          gap: "3px",
           lineHeight: 1,
         }}
       >
-        <span style={{ fontSize: "22px" }}>🎮</span>
+        <span style={{ fontSize: "18px" }}>🎮</span>
         <span
           style={{
-            fontSize: "8px",
+            fontSize: "7px",
             fontWeight: 800,
             letterSpacing: "0.04em",
             writingMode: "vertical-rl",
