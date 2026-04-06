@@ -1,3 +1,4 @@
+import ClickEffects from "@/components/ClickEffects";
 import SideGames from "@/components/SideGames";
 import {
   Accordion,
@@ -81,23 +82,35 @@ function QRSuccessPopup({
     if (phase !== "fireworks") return;
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Use parent size for absolute-positioned canvas
+    const parent = canvas.parentElement;
+    const pw = parent ? parent.offsetWidth : window.innerWidth;
+    const ph = parent ? parent.offsetHeight : window.innerHeight;
+
+    canvas.width = pw * window.devicePixelRatio;
+    canvas.height = ph * window.devicePixelRatio;
+
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-    canvas.height = canvas.offsetHeight * window.devicePixelRatio;
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    const W = canvas.offsetWidth;
-    const H = canvas.offsetHeight;
+    const W = pw;
+    const H = ph;
 
+    // Blue/purple prominent, with gold, pink, white
     const COLORS = [
       "#3B82F6",
+      "#3B82F6",
+      "#60A5FA",
+      "#93C5FD",
       "#8B5CF6",
+      "#8B5CF6",
+      "#A78BFA",
+      "#C4B5FD",
       "#F59E0B",
       "#EC4899",
-      "#10B981",
-      "#60A5FA",
-      "#A78BFA",
+      "#ffffff",
       "#FCD34D",
     ];
 
@@ -110,25 +123,48 @@ function QRSuccessPopup({
       size: number;
       alpha: number;
       decay: number;
+      isStar: boolean;
+      rotation: number;
+      rotSpeed: number;
     }
 
     let particles: Particle[] = [];
     const startTime = Date.now();
     const DURATION = 2000;
 
+    const drawStar = (cx: number, cy: number, r: number, rot: number) => {
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot);
+      ctx.beginPath();
+      for (let k = 0; k < 4; k++) {
+        const a = (k / 4) * Math.PI * 2;
+        const aHalf = a + Math.PI / 4;
+        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+        ctx.lineTo(Math.cos(aHalf) * r * 0.4, Math.sin(aHalf) * r * 0.4);
+      }
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    };
+
     const burst = (x: number, y: number) => {
-      for (let i = 0; i < 18; i++) {
-        const angle = (i / 18) * Math.PI * 2;
-        const speed = 1.5 + Math.random() * 3;
+      for (let i = 0; i < 30; i++) {
+        const angle = (i / 30) * Math.PI * 2 + Math.random() * 0.2;
+        const speed = 1.5 + Math.random() * 4.5;
+        const isStar = Math.random() > 0.65;
         particles.push({
           x,
           y,
           vx: Math.cos(angle) * speed,
-          vy: Math.sin(angle) * speed - 1,
+          vy: Math.sin(angle) * speed - 1.2,
           color: COLORS[Math.floor(Math.random() * COLORS.length)],
-          size: 3 + Math.random() * 3,
+          size: isStar ? 4 + Math.random() * 4 : 2.5 + Math.random() * 3.5,
           alpha: 1,
-          decay: 0.015 + Math.random() * 0.015,
+          decay: 0.013 + Math.random() * 0.013,
+          isStar,
+          rotation: Math.random() * Math.PI * 2,
+          rotSpeed: (Math.random() - 0.5) * 0.15,
         });
       }
     };
@@ -140,11 +176,17 @@ function QRSuccessPopup({
       const elapsed = Date.now() - startTime;
       ctx.clearRect(0, 0, W, H);
 
-      if (elapsed < DURATION && elapsed - lastBurst > 300) {
-        burst(
-          W * 0.2 + Math.random() * W * 0.6,
-          H * 0.1 + Math.random() * H * 0.5,
-        );
+      if (elapsed < DURATION && elapsed - lastBurst > 200) {
+        const bx = W * 0.15 + Math.random() * W * 0.7;
+        const by = H * 0.05 + Math.random() * H * 0.55;
+        burst(bx, by);
+        // Sometimes double burst
+        if (Math.random() > 0.5) {
+          burst(
+            W * 0.15 + Math.random() * W * 0.7,
+            H * 0.05 + Math.random() * H * 0.45,
+          );
+        }
         lastBurst = elapsed;
       }
 
@@ -152,12 +194,18 @@ function QRSuccessPopup({
       for (const p of particles) {
         ctx.globalAlpha = p.alpha;
         ctx.fillStyle = p.color;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-        ctx.fill();
+        if (p.isStar) {
+          drawStar(p.x, p.y, p.size, p.rotation);
+          p.rotation += p.rotSpeed;
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
         p.x += p.vx;
         p.y += p.vy;
-        p.vy += 0.08;
+        p.vy += 0.07;
+        p.vx *= 0.99;
         p.alpha -= p.decay;
       }
       ctx.globalAlpha = 1;
@@ -167,8 +215,9 @@ function QRSuccessPopup({
       }
     };
 
-    burst(W * 0.3, H * 0.4);
-    burst(W * 0.7, H * 0.4);
+    burst(W * 0.25, H * 0.35);
+    burst(W * 0.75, H * 0.35);
+    burst(W * 0.5, H * 0.2);
     animId = requestAnimationFrame(animate);
 
     return () => cancelAnimationFrame(animId);
@@ -698,6 +747,21 @@ export default function App() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
 
+  // Tool QR popup state
+  const [toolQrUrl, setToolQrUrl] = useState<string | null>(null);
+  const [toolQrInput, setToolQrInput] = useState("");
+  const [showToolQRPopup, setShowToolQRPopup] = useState(false);
+  const [toolPopupPhase, setToolPopupPhase] = useState<"fireworks" | "options">(
+    "fireworks",
+  );
+
+  const handleToolQRGenerated = (qrDataUrl: string, inputText: string) => {
+    setToolQrUrl(qrDataUrl);
+    setToolQrInput(inputText);
+    setToolPopupPhase("fireworks");
+    setShowToolQRPopup(true);
+  };
+
   const scrollTo = (section: string) => {
     setMobileMenuOpen(false);
     const el = document.getElementById(section);
@@ -826,6 +890,20 @@ export default function App() {
       {/* ── Main content wrapper above orbs ── */}
       <div className="relative z-10">
         <Toaster position="top-right" />
+        <ClickEffects />
+
+        {/* Tool QR Success Popup */}
+        <AnimatePresence>
+          {showToolQRPopup && toolQrUrl && (
+            <QRSuccessPopup
+              qrDataUrl={toolQrUrl}
+              inputText={toolQrInput}
+              phase={toolPopupPhase}
+              onClose={() => setShowToolQRPopup(false)}
+              onDone={() => setToolPopupPhase("options")}
+            />
+          )}
+        </AnimatePresence>
 
         {/* ── Navbar ── */}
         <header
@@ -1029,7 +1107,11 @@ export default function App() {
                       >
                         <X className="w-4 h-4" />
                       </button>
-                      <ActiveToolComponent />
+                      {activeTool === "qr-code-maker" ? (
+                        <QRCodeMaker onQRGenerated={handleToolQRGenerated} />
+                      ) : (
+                        <ActiveToolComponent />
+                      )}
                     </div>
                   </motion.div>
                 )}

@@ -17,7 +17,11 @@ async function generateQRDataUrl(text: string): Promise<string> {
   } as any);
 }
 
-export default function QRCodeMaker() {
+interface QRCodeMakerProps {
+  onQRGenerated?: (qrDataUrl: string, inputText: string) => void;
+}
+
+export default function QRCodeMaker({ onQRGenerated }: QRCodeMakerProps = {}) {
   const [inputText, setInputText] = useState("");
   const [qrUrl, setQrUrl] = useState("");
   const [loading, setLoading] = useState(false);
@@ -53,7 +57,11 @@ export default function QRCodeMaker() {
     try {
       const url = await generateQRDataUrl(inputText.trim());
       setQrUrl(url);
-      toast.success("QR code generated!");
+      if (onQRGenerated) {
+        onQRGenerated(url, inputText.trim());
+      } else {
+        toast.success("QR code generated!");
+      }
     } catch (err) {
       console.error("QR error:", err);
       toast.error("Failed to generate QR code. Please try again.");
@@ -156,7 +164,7 @@ export default function QRCodeMaker() {
         </div>
       )}
 
-      {qrUrl && !loading && (
+      {qrUrl && !loading && !onQRGenerated && (
         <div
           className="flex flex-col items-center gap-4 p-6 bg-muted rounded-2xl"
           data-ocid="qrcode.success_state"
