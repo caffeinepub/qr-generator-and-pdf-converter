@@ -19,49 +19,49 @@
 @layer base {
   :root {
     --radius: 0.75rem;
-    /* Dark navy background */
-    --background: 0.12 0.035 270;
-    /* Dark card surface */
-    --card: 0.16 0.03 265;
-    --card-foreground: 0.95 0.01 240;
-    --popover: 0.16 0.03 265;
-    --popover-foreground: 0.95 0.01 240;
-    /* Near-white foreground */
-    --foreground: 0.95 0.01 240;
-    /* Electric blue primary */
-    --primary: 0.62 0.22 248;
+    /* Light background */
+    --background: 0.98 0.004 240;
+    /* White card surface */
+    --card: 1 0 0;
+    --card-foreground: 0.15 0.02 240;
+    --popover: 1 0 0;
+    --popover-foreground: 0.15 0.02 240;
+    /* Dark foreground */
+    --foreground: 0.15 0.02 240;
+    /* Blue primary */
+    --primary: 0.58 0.2 248;
     --primary-foreground: 1 0 0;
-    /* Purple secondary */
-    --secondary: 0.22 0.04 270;
-    --secondary-foreground: 0.85 0.08 280;
+    /* Light secondary */
+    --secondary: 0.94 0.01 240;
+    --secondary-foreground: 0.25 0.03 240;
     /* Muted */
-    --muted: 0.2 0.025 265;
-    --muted-foreground: 0.6 0.03 255;
+    --muted: 0.95 0.008 240;
+    --muted-foreground: 0.48 0.025 255;
     /* Accent */
-    --accent: 0.25 0.05 270;
-    --accent-foreground: 0.85 0.1 270;
+    --accent: 0.94 0.01 248;
+    --accent-foreground: 0.3 0.08 248;
     /* Destructive */
     --destructive: 0.63 0.22 27;
     --destructive-foreground: 1 0 0;
-    /* Borders: subtle light on dark */
-    --border: 0.28 0.04 265;
-    --input: 0.22 0.03 265;
-    --ring: 0.62 0.22 248;
+    /* Borders: soft gray */
+    --border: 0.88 0.01 240;
+    --input: 0.88 0.01 240;
+    --ring: 0.58 0.2 248;
     /* Success */
-    --success: 0.72 0.17 149;
-    --chart-1: 0.62 0.22 248;
-    --chart-2: 0.72 0.17 149;
+    --success: 0.62 0.17 149;
+    --chart-1: 0.58 0.2 248;
+    --chart-2: 0.62 0.17 149;
     --chart-3: 0.63 0.22 27;
     --chart-4: 0.828 0.189 84.429;
     --chart-5: 0.769 0.188 70.08;
-    --sidebar: 0.14 0.03 270;
-    --sidebar-foreground: 0.95 0.01 240;
-    --sidebar-primary: 0.62 0.22 248;
+    --sidebar: 0.97 0.005 240;
+    --sidebar-foreground: 0.15 0.02 240;
+    --sidebar-primary: 0.58 0.2 248;
     --sidebar-primary-foreground: 1 0 0;
-    --sidebar-accent: 0.22 0.04 270;
-    --sidebar-accent-foreground: 0.85 0.08 280;
-    --sidebar-border: 0.25 0.04 265;
-    --sidebar-ring: 0.62 0.22 248;
+    --sidebar-accent: 0.94 0.01 248;
+    --sidebar-accent-foreground: 0.3 0.08 248;
+    --sidebar-border: 0.88 0.01 240;
+    --sidebar-ring: 0.58 0.2 248;
   }
 
   * {
@@ -70,198 +70,35 @@
 
   body {
     @apply text-foreground font-sans;
-    background: #0a0f2c;
+    background: #f8fafc;
     min-height: 100vh;
   }
-}
 
-/* ── Aurora background orbs ── */
-@keyframes aurora {
-  0%,
-  100% {
-    transform: translateX(0) translateY(0) scale(1);
-    opacity: 0.4;
-  }
-  33% {
-    transform: translateX(30px) translateY(-20px) scale(1.05);
-    opacity: 0.6;
-  }
-  66% {
-    transform: translateX(-20px) translateY(15px) scale(0.95);
-    opacity: 0.5;
+  html {
+    scroll-behavior: smooth;
   }
 }
 
-@keyframes float-orb {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.35;
+/* ── Accordion ── */
+@keyframes accordion-down {
+  from {
+    height: 0;
   }
-  25% {
-    transform: translate(20px, -30px) scale(1.08);
-    opacity: 0.55;
-  }
-  50% {
-    transform: translate(30px, -40px) scale(1.12);
-    opacity: 0.65;
-  }
-  75% {
-    transform: translate(-10px, -20px) scale(1.04);
-    opacity: 0.45;
+  to {
+    height: var(--radix-accordion-content-height);
   }
 }
 
-@keyframes float-orb-2 {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.3;
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
   }
-  33% {
-    transform: translate(-40px, 25px) scale(1.1);
-    opacity: 0.55;
-  }
-  66% {
-    transform: translate(25px, -35px) scale(0.92);
-    opacity: 0.4;
+  to {
+    height: 0;
   }
 }
 
-@keyframes float-orb-3 {
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-    opacity: 0.25;
-  }
-  50% {
-    transform: translate(-30px, 40px) scale(1.15);
-    opacity: 0.5;
-  }
-}
-
-/* ── Shimmer text ── */
-@keyframes shimmer {
-  0% {
-    background-position: -200% center;
-  }
-  100% {
-    background-position: 200% center;
-  }
-}
-
-@keyframes text-shimmer {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-/* ── Glow pulses ── */
-@keyframes pulse-glow {
-  0%,
-  100% {
-    box-shadow: 0 0 20px rgba(59, 130, 246, 0.4), 0 0 40px
-      rgba(59, 130, 246, 0.2);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(59, 130, 246, 0.8), 0 0 80px
-      rgba(139, 92, 246, 0.4), 0 0 120px rgba(59, 130, 246, 0.2);
-  }
-}
-
-@keyframes badge-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 8px rgba(99, 179, 237, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 16px rgba(99, 179, 237, 0.9), 0 0 28px
-      rgba(99, 179, 237, 0.4);
-  }
-}
-
-/* ── Star twinkle ── */
-@keyframes twinkle {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.4);
-  }
-}
-
-/* ── Floating animation ── */
-@keyframes float-qr {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-/* ── Neon border animation ── */
-@keyframes neon-border {
-  0%,
-  100% {
-    border-color: rgba(59, 130, 246, 0.5);
-    box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
-  }
-  50% {
-    border-color: rgba(139, 92, 246, 0.8);
-    box-shadow: 0 0 20px rgba(139, 92, 246, 0.5), 0 0 40px
-      rgba(59, 130, 246, 0.2);
-  }
-}
-
-/* ── Card tilt effect ── */
-.card-tilt {
-  transform-style: preserve-3d;
-  transition: transform 0.1s ease;
-}
-
-/* ── Gradient text animation ── */
-.gradient-text-animate {
-  background: linear-gradient(90deg, #60a5fa, #a78bfa, #34d399, #60a5fa);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: shimmer 3s linear infinite;
-}
-
-/* ── Glassmorphism utilities ── */
-.glass-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.glass-card-hover:hover {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(99, 179, 237, 0.4);
-  box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2), 0 0 0 1px
-    rgba(99, 179, 237, 0.15);
-}
-
-/* ── Logo glow ── */
-.logo-glow {
-  border-radius: 12px;
-  filter: drop-shadow(0 0 8px rgba(99, 179, 237, 0.6));
-}
-
-/* ── Splash ripple ── */
+/* ── Ripple click effect ── */
 @keyframes splashRipple {
   0% {
     transform: scale(0);
@@ -274,4 +111,39 @@
     transform: scale(1);
     opacity: 0;
   }
+}
+
+@keyframes rippleRing {
+  0% {
+    transform: scale(0);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+@keyframes sparkle {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.6) rotate(45deg);
+    opacity: 0;
+  }
+}
+
+/* ── Tool card hover ── */
+.tool-card {
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+.tool-card:hover {
+  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
 }

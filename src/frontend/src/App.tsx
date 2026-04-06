@@ -25,13 +25,12 @@ import PDFToImage from "@/tools/PDFToImage";
 import QRCodeMaker from "@/tools/QRCodeMaker";
 import TextToPDF from "@/tools/TextToPDF";
 import {
-  ArrowRight,
-  ChevronDown,
   Download,
   FileOutput,
   FileText,
   ImageIcon,
   Images,
+  Loader2,
   Menu,
   QrCode,
   Share2,
@@ -41,986 +40,477 @@ import {
   Zap,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-const WELCOME_STARS = [
-  {
-    id: "ws0",
-    w: 2.28,
-    h: 1.05,
-    l: 27.5,
-    t: 22.32,
-    o: 0.64,
-    dur: 2.85,
-    del: 1.78,
-  },
-  {
-    id: "ws1",
-    w: 1.17,
-    h: 1.84,
-    l: 2.98,
-    t: 21.86,
-    o: 0.5,
-    dur: 1.55,
-    del: 0.4,
-  },
-  {
-    id: "ws2",
-    w: 2.3,
-    h: 2.09,
-    l: 22.04,
-    t: 58.93,
-    o: 0.69,
-    dur: 1.51,
-    del: 1.61,
-  },
-  {
-    id: "ws3",
-    w: 2.4,
-    h: 1.68,
-    l: 15.55,
-    t: 95.72,
-    o: 0.4,
-    dur: 1.69,
-    del: 0.19,
-  },
-  {
-    id: "ws4",
-    w: 2.69,
-    h: 2.21,
-    l: 80.71,
-    t: 72.97,
-    o: 0.52,
-    dur: 3.45,
-    del: 0.76,
-  },
-  {
-    id: "ws5",
-    w: 2.1,
-    h: 2.66,
-    l: 61.85,
-    t: 86.17,
-    o: 0.55,
-    dur: 2.91,
-    del: 0.09,
-  },
-  {
-    id: "ws6",
-    w: 1.46,
-    h: 1.58,
-    l: 7.98,
-    t: 23.28,
-    o: 0.26,
-    dur: 2.06,
-    del: 1.27,
-  },
-  {
-    id: "ws7",
-    w: 1.73,
-    h: 1.74,
-    l: 20.95,
-    t: 26.7,
-    o: 0.76,
-    dur: 2.8,
-    del: 1.22,
-  },
-  {
-    id: "ws8",
-    w: 1.34,
-    h: 2.46,
-    l: 16.34,
-    t: 37.95,
-    o: 0.79,
-    dur: 2.78,
-    del: 1.11,
-  },
-  {
-    id: "ws9",
-    w: 2.37,
-    h: 2.69,
-    l: 77.6,
-    t: 22.9,
-    o: 0.22,
-    dur: 2.13,
-    del: 0.54,
-  },
-  {
-    id: "ws10",
-    w: 1.42,
-    h: 2.89,
-    l: 87.64,
-    t: 31.47,
-    o: 0.59,
-    dur: 2.29,
-    del: 1.83,
-  },
-  {
-    id: "ws11",
-    w: 1.92,
-    h: 1.53,
-    l: 24.66,
-    t: 56.14,
-    o: 0.36,
-    dur: 2.67,
-    del: 1.8,
-  },
-  {
-    id: "ws12",
-    w: 1.8,
-    h: 1.44,
-    l: 99.75,
-    t: 50.95,
-    o: 0.25,
-    dur: 1.59,
-    del: 0.22,
-  },
-  {
-    id: "ws13",
-    w: 2.25,
-    h: 2.58,
-    l: 42.22,
-    t: 6.35,
-    o: 0.43,
-    dur: 3.49,
-    del: 1.06,
-  },
-  {
-    id: "ws14",
-    w: 2.94,
-    h: 2.72,
-    l: 1.15,
-    t: 72.07,
-    o: 0.61,
-    dur: 2.57,
-    del: 0.53,
-  },
-  {
-    id: "ws15",
-    w: 2.28,
-    h: 1.22,
-    l: 43.48,
-    t: 45.37,
-    o: 0.77,
-    dur: 3.25,
-    del: 0.53,
-  },
-  {
-    id: "ws16",
-    w: 2.0,
-    h: 1.36,
-    l: 91.26,
-    t: 87.05,
-    o: 0.38,
-    dur: 2.78,
-    del: 1.22,
-  },
-  {
-    id: "ws17",
-    w: 1.31,
-    h: 2.53,
-    l: 53.94,
-    t: 77.86,
-    o: 0.52,
-    dur: 1.5,
-    del: 0.65,
-  },
-  {
-    id: "ws18",
-    w: 1.04,
-    h: 2.86,
-    l: 87.87,
-    t: 83.17,
-    o: 0.38,
-    dur: 1.62,
-    del: 1.76,
-  },
-  {
-    id: "ws19",
-    w: 2.89,
-    h: 1.17,
-    l: 48.6,
-    t: 6.92,
-    o: 0.66,
-    dur: 3.03,
-    del: 0.26,
-  },
-  {
-    id: "ws20",
-    w: 1.95,
-    h: 2.1,
-    l: 26.51,
-    t: 87.24,
-    o: 0.45,
-    dur: 1.92,
-    del: 1.08,
-  },
-  {
-    id: "ws21",
-    w: 2.46,
-    h: 1.4,
-    l: 31.17,
-    t: 99.51,
-    o: 0.59,
-    dur: 2.38,
-    del: 1.04,
-  },
-  {
-    id: "ws22",
-    w: 1.24,
-    h: 1.45,
-    l: 33.81,
-    t: 58.83,
-    o: 0.34,
-    dur: 1.94,
-    del: 0.14,
-  },
-  {
-    id: "ws23",
-    w: 2.26,
-    h: 1.46,
-    l: 90.54,
-    t: 85.96,
-    o: 0.24,
-    dur: 1.98,
-    del: 1.34,
-  },
-  {
-    id: "ws24",
-    w: 1.43,
-    h: 1.26,
-    l: 93.55,
-    t: 57.1,
-    o: 0.48,
-    dur: 3.07,
-    del: 1.61,
-  },
-  {
-    id: "ws25",
-    w: 1.38,
-    h: 1.19,
-    l: 43.11,
-    t: 42.36,
-    o: 0.48,
-    dur: 2.96,
-    del: 1.35,
-  },
-  {
-    id: "ws26",
-    w: 2.97,
-    h: 1.2,
-    l: 40.26,
-    t: 33.93,
-    o: 0.72,
-    dur: 2.0,
-    del: 0.38,
-  },
-  {
-    id: "ws27",
-    w: 1.9,
-    h: 1.84,
-    l: 27.85,
-    t: 24.98,
-    o: 0.75,
-    dur: 2.39,
-    del: 1.72,
-  },
-  {
-    id: "ws28",
-    w: 2.1,
-    h: 1.1,
-    l: 99.93,
-    t: 83.6,
-    o: 0.78,
-    dur: 3.35,
-    del: 1.7,
-  },
-  {
-    id: "ws29",
-    w: 1.33,
-    h: 1.97,
-    l: 21.37,
-    t: 40.1,
-    o: 0.24,
-    dur: 2.26,
-    del: 1.97,
-  },
-  {
-    id: "ws30",
-    w: 1.53,
-    h: 2.57,
-    l: 45.5,
-    t: 42.3,
-    o: 0.77,
-    dur: 3.49,
-    del: 1.11,
-  },
-  {
-    id: "ws31",
-    w: 2.44,
-    h: 1.31,
-    l: 29.67,
-    t: 96.87,
-    o: 0.55,
-    dur: 2.58,
-    del: 1.5,
-  },
-  {
-    id: "ws32",
-    w: 1.11,
-    h: 2.17,
-    l: 50.29,
-    t: 85.27,
-    o: 0.29,
-    dur: 3.42,
-    del: 0.16,
-  },
-  {
-    id: "ws33",
-    w: 1.37,
-    h: 2.19,
-    l: 67.52,
-    t: 23.52,
-    o: 0.27,
-    dur: 3.28,
-    del: 0.49,
-  },
-  {
-    id: "ws34",
-    w: 2.19,
-    h: 2.24,
-    l: 41.92,
-    t: 58.37,
-    o: 0.51,
-    dur: 3.37,
-    del: 0.41,
-  },
-  {
-    id: "ws35",
-    w: 2.43,
-    h: 1.48,
-    l: 39.58,
-    t: 67.17,
-    o: 0.38,
-    dur: 2.13,
-    del: 1.5,
-  },
-  {
-    id: "ws36",
-    w: 1.15,
-    h: 1.92,
-    l: 99.85,
-    t: 99.61,
-    o: 0.24,
-    dur: 1.93,
-    del: 0.53,
-  },
-  {
-    id: "ws37",
-    w: 2.87,
-    h: 2.76,
-    l: 87.93,
-    t: 36.95,
-    o: 0.29,
-    dur: 3.17,
-    del: 1.41,
-  },
-  {
-    id: "ws38",
-    w: 2.22,
-    h: 2.97,
-    l: 65.4,
-    t: 0.78,
-    o: 0.69,
-    dur: 2.1,
-    del: 1.33,
-  },
-  {
-    id: "ws39",
-    w: 2.88,
-    h: 1.27,
-    l: 11.54,
-    t: 10.7,
-    o: 0.53,
-    dur: 2.04,
-    del: 1.21,
-  },
-  {
-    id: "ws40",
-    w: 2.44,
-    h: 1.41,
-    l: 63.42,
-    t: 26.4,
-    o: 0.49,
-    dur: 3.31,
-    del: 1.69,
-  },
-  {
-    id: "ws41",
-    w: 1.18,
-    h: 1.85,
-    l: 27.67,
-    t: 0.35,
-    o: 0.66,
-    dur: 2.77,
-    del: 0.52,
-  },
-  {
-    id: "ws42",
-    w: 2.48,
-    h: 2.1,
-    l: 42.77,
-    t: 0.97,
-    o: 0.25,
-    dur: 3.27,
-    del: 1.81,
-  },
-  {
-    id: "ws43",
-    w: 2.09,
-    h: 2.67,
-    l: 58.25,
-    t: 14.81,
-    o: 0.28,
-    dur: 2.12,
-    del: 1.8,
-  },
-  {
-    id: "ws44",
-    w: 2.59,
-    h: 2.72,
-    l: 89.89,
-    t: 21.01,
-    o: 0.35,
-    dur: 1.71,
-    del: 1.56,
-  },
-  {
-    id: "ws45",
-    w: 2.77,
-    h: 1.81,
-    l: 62.07,
-    t: 15.46,
-    o: 0.76,
-    dur: 3.23,
-    del: 1.95,
-  },
-  {
-    id: "ws46",
-    w: 2.62,
-    h: 2.76,
-    l: 2.48,
-    t: 73.66,
-    o: 0.4,
-    dur: 3.36,
-    del: 1.6,
-  },
-  {
-    id: "ws47",
-    w: 2.73,
-    h: 2.62,
-    l: 26.68,
-    t: 78.74,
-    o: 0.26,
-    dur: 3.24,
-    del: 1.72,
-  },
-  {
-    id: "ws48",
-    w: 1.44,
-    h: 2.63,
-    l: 46.03,
-    t: 30.52,
-    o: 0.68,
-    dur: 1.96,
-    del: 0.05,
-  },
-  {
-    id: "ws49",
-    w: 1.39,
-    h: 1.66,
-    l: 86.44,
-    t: 96.69,
-    o: 0.37,
-    dur: 2.78,
-    del: 0.8,
-  },
-  {
-    id: "ws50",
-    w: 2.96,
-    h: 2.07,
-    l: 93.92,
-    t: 11.53,
-    o: 0.78,
-    dur: 1.86,
-    del: 1.93,
-  },
-  {
-    id: "ws51",
-    w: 1.53,
-    h: 1.22,
-    l: 43.46,
-    t: 72.85,
-    o: 0.39,
-    dur: 2.71,
-    del: 1.02,
-  },
-  {
-    id: "ws52",
-    w: 1.77,
-    h: 2.15,
-    l: 25.47,
-    t: 70.88,
-    o: 0.2,
-    dur: 3.35,
-    del: 1.08,
-  },
-  {
-    id: "ws53",
-    w: 2.44,
-    h: 2.48,
-    l: 67.06,
-    t: 36.42,
-    o: 0.24,
-    dur: 2.83,
-    del: 0.66,
-  },
-  {
-    id: "ws54",
-    w: 1.63,
-    h: 2.7,
-    l: 71.98,
-    t: 30.03,
-    o: 0.39,
-    dur: 2.32,
-    del: 0.8,
-  },
-  {
-    id: "ws55",
-    w: 1.59,
-    h: 1.25,
-    l: 42.04,
-    t: 94.04,
-    o: 0.61,
-    dur: 3.31,
-    del: 1.23,
-  },
-  {
-    id: "ws56",
-    w: 1.6,
-    h: 2.1,
-    l: 0.04,
-    t: 28.69,
-    o: 0.46,
-    dur: 2.66,
-    del: 1.31,
-  },
-  {
-    id: "ws57",
-    w: 1.93,
-    h: 1.88,
-    l: 21.37,
-    t: 47.32,
-    o: 0.74,
-    dur: 3.09,
-    del: 0.34,
-  },
-  {
-    id: "ws58",
-    w: 1.17,
-    h: 2.03,
-    l: 63.29,
-    t: 33.52,
-    o: 0.69,
-    dur: 3.0,
-    del: 1.35,
-  },
-  {
-    id: "ws59",
-    w: 1.45,
-    h: 1.4,
-    l: 2.44,
-    t: 24.48,
-    o: 0.49,
-    dur: 3.2,
-    del: 0.15,
-  },
-] as const;
+// ─── Pure-JS QR Code encoder (copied from QRCodeMaker.tsx) ───────────────────
+const GF_EXP = new Uint8Array(512);
+const GF_LOG = new Uint8Array(256);
+(() => {
+  let x = 1;
+  for (let i = 0; i < 255; i++) {
+    GF_EXP[i] = x;
+    GF_LOG[x] = i;
+    x = x << 1;
+    if (x & 0x100) x ^= 0x11d;
+  }
+  for (let i = 255; i < 512; i++) GF_EXP[i] = GF_EXP[i - 255];
+})();
 
-// ── Welcome Splash ──────────────────────────────────────────────────────────
-function WelcomeSplash({ onDone }: { onDone: () => void }) {
-  useEffect(() => {
-    const timer = setTimeout(onDone, 1800);
-    return () => clearTimeout(timer);
-  }, [onDone]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.6, ease: "easeInOut" }}
-      className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
-      style={{
-        background:
-          "linear-gradient(135deg, #050d2e 0%, #0a1660 40%, #160830 100%)",
-      }}
-      data-ocid="welcome.modal"
-    >
-      {/* Animated stars */}
-      {WELCOME_STARS.map((s) => (
-        <motion.div
-          key={s.id}
-          className="absolute rounded-full bg-white"
-          style={{
-            width: `${s.w}px`,
-            height: `${s.h}px`,
-            left: `${s.l}%`,
-            top: `${s.t}%`,
-            opacity: s.o,
-            animation: `twinkle ${s.dur}s ease-in-out infinite`,
-            animationDelay: `${s.del}s`,
-          }}
-        />
-      ))}
-
-      {/* Content */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.85, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="text-center px-6 relative z-10"
-      >
-        <motion.div
-          className="mb-6 flex justify-center"
-          animate={{
-            filter: [
-              "drop-shadow(0 0 8px #60a5fa)",
-              "drop-shadow(0 0 22px #a78bfa)",
-              "drop-shadow(0 0 8px #60a5fa)",
-            ],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-          }}
-        >
-          <img
-            src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
-            alt="QR & PDF Tools Logo"
-            className="h-14 w-auto object-contain"
-            style={{ filter: "brightness(0) invert(1)" }}
-          />
-        </motion.div>
-        <h1 className="font-extrabold text-3xl sm:text-4xl leading-tight mb-3 gradient-text-animate">
-          Welcome to Free QR Tools
-        </h1>
-        <p
-          className="text-base sm:text-lg font-medium"
-          style={{ color: "#93c5fd" }}
-        >
-          Fast · Secure · 100% Free
-        </p>
-      </motion.div>
-    </motion.div>
-  );
+function gfMul(x: number, y: number) {
+  if (x === 0 || y === 0) return 0;
+  return GF_EXP[(GF_LOG[x] + GF_LOG[y]) % 255];
 }
 
-// ── Aurora Background Orbs ─────────────────────────────────────────────────
-function AuroraBackground() {
+function gfPolyMul(p: number[], q: number[]) {
+  const r = new Array(p.length + q.length - 1).fill(0);
+  for (let i = 0; i < p.length; i++)
+    for (let j = 0; j < q.length; j++) r[i + j] ^= gfMul(p[i], q[j]);
+  return r;
+}
+
+function rsGeneratorPoly(nsym: number) {
+  let g: number[] = [1];
+  for (let i = 0; i < nsym; i++) g = gfPolyMul(g, [1, GF_EXP[i]]);
+  return g;
+}
+
+function rsEncode(data: number[], nsym: number) {
+  const gen = rsGeneratorPoly(nsym);
+  const msg = [...data, ...new Array(nsym).fill(0)];
+  for (let i = 0; i < data.length; i++) {
+    const coeff = msg[i];
+    if (coeff !== 0)
+      for (let j = 0; j < gen.length; j++) msg[i + j] ^= gfMul(gen[j], coeff);
+  }
+  return msg.slice(data.length);
+}
+
+const QR_VERSIONS: Record<
+  number,
+  { size: number; data: number; ecc: number; blocks: number; remBits: number }
+> = {
+  1: { size: 21, data: 19, ecc: 7, blocks: 1, remBits: 0 },
+  2: { size: 25, data: 34, ecc: 10, blocks: 1, remBits: 7 },
+  3: { size: 29, data: 55, ecc: 15, blocks: 1, remBits: 7 },
+  4: { size: 33, data: 80, ecc: 20, blocks: 2, remBits: 7 },
+  5: { size: 37, data: 108, ecc: 26, blocks: 2, remBits: 7 },
+  6: { size: 41, data: 136, ecc: 18, blocks: 4, remBits: 7 },
+  7: { size: 45, data: 156, ecc: 20, blocks: 4, remBits: 0 },
+};
+
+function pickVersion(byteCount: number) {
+  for (const [ver, info] of Object.entries(QR_VERSIONS)) {
+    if (byteCount <= info.data - 2) return { ver: Number(ver), info };
+  }
+  return null;
+}
+
+function encodeBytes(text: string) {
+  const bytes: number[] = [];
+  for (let i = 0; i < text.length; i++) {
+    const c = text.charCodeAt(i);
+    if (c < 128) bytes.push(c);
+    else if (c < 2048) {
+      bytes.push(0xc0 | (c >> 6));
+      bytes.push(0x80 | (c & 0x3f));
+    } else {
+      bytes.push(0xe0 | (c >> 12));
+      bytes.push(0x80 | ((c >> 6) & 0x3f));
+      bytes.push(0x80 | (c & 0x3f));
+    }
+  }
+  return bytes;
+}
+
+function buildBitstream(data: number[], totalDataBytes: number) {
+  const bits: number[] = [];
+  const push = (val: number, len: number) => {
+    for (let i = len - 1; i >= 0; i--) bits.push((val >> i) & 1);
+  };
+  push(4, 4);
+  push(data.length, 8);
+  for (const b of data) push(b, 8);
+  for (let i = 0; i < 4 && bits.length < totalDataBytes * 8; i++) bits.push(0);
+  while (bits.length % 8 !== 0) bits.push(0);
+  const padBytes = [0xec, 0x11];
+  let pi = 0;
+  while (bits.length < totalDataBytes * 8) push(padBytes[pi++ % 2], 8);
+  const out: number[] = [];
+  for (let i = 0; i < bits.length; i += 8) {
+    let byte = 0;
+    for (let j = 0; j < 8; j++) byte = (byte << 1) | (bits[i + j] ?? 0);
+    out.push(byte);
+  }
+  return out;
+}
+
+function placeFinder(grid: number[][], r: number, c: number) {
+  for (let dr = -1; dr <= 7; dr++)
+    for (let dc = -1; dc <= 7; dc++) {
+      const rr = r + dr;
+      const cc = c + dc;
+      if (rr < 0 || cc < 0 || rr >= grid.length || cc >= grid[0].length)
+        continue;
+      const inFinder =
+        dr >= 0 &&
+        dr <= 6 &&
+        dc >= 0 &&
+        dc <= 6 &&
+        (dr === 0 ||
+          dr === 6 ||
+          dc === 0 ||
+          dc === 6 ||
+          (dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4));
+      grid[rr][cc] = inFinder ? 1 : 0;
+    }
+}
+
+function placeAlign(grid: number[][], r: number, c: number) {
+  for (let dr = -2; dr <= 2; dr++)
+    for (let dc = -2; dc <= 2; dc++) {
+      const v =
+        dr === -2 || dr === 2 || dc === -2 || dc === 2 || (dr === 0 && dc === 0)
+          ? 1
+          : 0;
+      grid[r + dr][c + dc] = v;
+    }
+}
+
+function generateQRMatrix(text: string): string | null {
+  const raw = encodeBytes(text);
+  const versionInfo = pickVersion(raw.length);
+  if (!versionInfo) return null;
+  const { ver, info } = versionInfo;
+  const size = info.size;
+
+  const dataBytes = buildBitstream(raw, info.data);
+  const eccBytes = rsEncode(dataBytes, info.ecc);
+  const codewords = [...dataBytes, ...eccBytes];
+
+  const cwBits: number[] = [];
+  for (const cw of codewords)
+    for (let i = 7; i >= 0; i--) cwBits.push((cw >> i) & 1);
+  for (let i = 0; i < info.remBits; i++) cwBits.push(0);
+
+  const grid: number[][] = Array.from({ length: size }, () =>
+    new Array(size).fill(-1),
+  );
+  const reserved: boolean[][] = Array.from({ length: size }, () =>
+    new Array(size).fill(false),
+  );
+
+  const reserve = (r: number, c: number, v: number) => {
+    grid[r][c] = v;
+    reserved[r][c] = true;
+  };
+
+  placeFinder(grid, 0, 0);
+  placeFinder(grid, 0, size - 7);
+  placeFinder(grid, size - 7, 0);
+  for (let i = 0; i < size; i++) {
+    reserved[0][i] = reserved[6][i] = reserved[i][0] = reserved[i][6] = true;
+    reserved[size - 7][i] =
+      reserved[size - 1][i] =
+      reserved[i][size - 7] =
+      reserved[i][size - 1] =
+        true;
+    reserved[0][size - 8 + i] =
+      reserved[6][size - 8 + i] =
+      reserved[i][size - 8] =
+      reserved[i][size - 1] =
+        true;
+  }
+  for (let i = 0; i < 8; i++)
+    for (let j = 0; j < 8; j++) {
+      reserved[i][j] = true;
+      reserved[i][size - 8 + j] = true;
+      reserved[size - 8 + i][j] = true;
+    }
+
+  for (let i = 8; i < size - 8; i++) {
+    const v = i % 2 === 0 ? 1 : 0;
+    reserve(6, i, v);
+    reserve(i, 6, v);
+  }
+
+  const alignPos: Record<number, number[]> = {
+    2: [6, 18],
+    3: [6, 22],
+    4: [6, 26],
+    5: [6, 30],
+    6: [6, 34],
+    7: [6, 22, 38],
+  };
+  if (ver >= 2) {
+    const pos = alignPos[ver];
+    for (let i = 0; i < pos.length; i++)
+      for (let j = 0; j < pos.length; j++) {
+        const r = pos[i];
+        const c = pos[j];
+        if (
+          (r < 8 && c < 8) ||
+          (r < 8 && c > size - 9) ||
+          (r > size - 9 && c < 8)
+        )
+          continue;
+        placeAlign(grid, r, c);
+        for (let dr = -2; dr <= 2; dr++)
+          for (let dc = -2; dc <= 2; dc++) reserved[r + dr][c + dc] = true;
+      }
+  }
+
+  reserve(size - 8, 8, 1);
+  for (let i = 0; i < 9; i++) {
+    reserved[i][8] = true;
+    reserved[8][i] = true;
+  }
+  for (let i = size - 8; i < size; i++) {
+    reserved[i][8] = true;
+    reserved[8][i] = true;
+  }
+
+  let bitIdx = 0;
+  let goingUp = true;
+  for (let col = size - 1; col >= 0; col -= 2) {
+    if (col === 6) col = 5;
+    for (
+      let row = goingUp ? size - 1 : 0;
+      goingUp ? row >= 0 : row < size;
+      row += goingUp ? -1 : 1
+    ) {
+      for (let dc = 0; dc < 2; dc++) {
+        const c = col - dc;
+        if (!reserved[row][c]) {
+          grid[row][c] = bitIdx < cwBits.length ? cwBits[bitIdx++] : 0;
+        }
+      }
+    }
+    goingUp = !goingUp;
+  }
+
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++)
+      if (!reserved[r][c] && (r + c) % 2 === 0) grid[r][c] ^= 1;
+
+  const fmtRaw = 0b00000;
+  let fmtPoly = fmtRaw << 10;
+  const gen10 = 0x537;
+  for (let i = 14; i >= 10; i--)
+    if ((fmtPoly >> i) & 1) fmtPoly ^= gen10 << (i - 10);
+  const fmtWord = ((fmtRaw << 10) | fmtPoly) ^ 0x5412;
+  const fmtBits = Array.from(
+    { length: 15 },
+    (_, i) => (fmtWord >> (14 - i)) & 1,
+  );
+  const fmtSeq1 = [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    7,
+    8,
+    size - 7,
+    size - 6,
+    size - 5,
+    size - 4,
+    size - 3,
+    size - 2,
+    size - 1,
+  ];
+  const fmtSeq2 = [
+    size - 1,
+    size - 2,
+    size - 3,
+    size - 4,
+    size - 5,
+    size - 6,
+    size - 7,
+    8,
+    7,
+    5,
+    4,
+    3,
+    2,
+    1,
+    0,
+  ];
+  for (let i = 0; i < 15; i++) {
+    grid[8][fmtSeq1[i]] = fmtBits[i];
+    grid[fmtSeq2[i]][8] = fmtBits[i];
+  }
+
+  // Render to canvas and return data URL
+  const scale = 8;
+  const quiet = 3 * scale;
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = size * scale + quiet * 2;
+  const ctx = canvas.getContext("2d")!;
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  for (let r = 0; r < size; r++)
+    for (let c = 0; c < size; c++) {
+      ctx.fillStyle = grid[r][c] === 1 ? "#1E293B" : "#ffffff";
+      ctx.fillRect(quiet + c * scale, quiet + r * scale, scale, scale);
+    }
+  return canvas.toDataURL("image/png");
+}
+
+// ── Inline QR Hero Widget ────────────────────────────────────────────────────
+const DEFAULT_QR_TEXT =
+  "https://qr-generator-and-pdf-converter-8y9.caffeine.xyz";
+
+function HeroQRWidget() {
+  const [inputText, setInputText] = useState(DEFAULT_QR_TEXT);
+  const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Generate on mount with default value
+  useEffect(() => {
+    const url = generateQRMatrix(DEFAULT_QR_TEXT);
+    setQrDataUrl(url);
+  }, []);
+
+  const regenerate = useCallback((text: string) => {
+    if (!text.trim()) {
+      setQrDataUrl(null);
+      return;
+    }
+    const url = generateQRMatrix(text.trim());
+    if (url) setQrDataUrl(url);
+    else toast.error("Text is too long. Please shorten it.");
+  }, []);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setInputText(val);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => regenerate(val), 150);
+  };
+
+  const handleGenerate = () => regenerate(inputText);
+
+  const handleDownload = () => {
+    if (!qrDataUrl) return;
+    const a = document.createElement("a");
+    a.href = qrDataUrl;
+    a.download = "qrcode.png";
+    a.click();
+    toast.success("QR code downloaded!");
+  };
+
   return (
     <div
-      className="fixed inset-0 overflow-hidden pointer-events-none"
-      style={{ zIndex: 0 }}
+      className="w-full max-w-md mx-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8"
+      data-ocid="hero.panel"
     >
-      {/* Deep background gradient */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(135deg, #0a0f2c 0%, #0d1b4b 45%, #1a0533 100%)",
-        }}
-      />
-      {/* Orb 1 - Blue */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: "600px",
-          height: "600px",
-          top: "-100px",
-          left: "-100px",
-          background:
-            "radial-gradient(circle, rgba(59,130,246,0.18) 0%, rgba(37,99,235,0.08) 40%, transparent 70%)",
-          animation: "float-orb 12s ease-in-out infinite",
-          filter: "blur(40px)",
-        }}
-      />
-      {/* Orb 2 - Purple */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: "500px",
-          height: "500px",
-          top: "30%",
-          right: "-80px",
-          background:
-            "radial-gradient(circle, rgba(139,92,246,0.2) 0%, rgba(109,40,217,0.08) 40%, transparent 70%)",
-          animation: "float-orb-2 15s ease-in-out infinite",
-          animationDelay: "-5s",
-          filter: "blur(50px)",
-        }}
-      />
-      {/* Orb 3 - Teal */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: "400px",
-          height: "400px",
-          bottom: "20%",
-          left: "15%",
-          background:
-            "radial-gradient(circle, rgba(20,184,166,0.15) 0%, rgba(13,148,136,0.06) 40%, transparent 70%)",
-          animation: "float-orb-3 18s ease-in-out infinite",
-          animationDelay: "-8s",
-          filter: "blur(45px)",
-        }}
-      />
-      {/* Orb 4 - Pink */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: "350px",
-          height: "350px",
-          bottom: "-50px",
-          right: "25%",
-          background:
-            "radial-gradient(circle, rgba(236,72,153,0.12) 0%, rgba(219,39,119,0.05) 40%, transparent 70%)",
-          animation: "float-orb 20s ease-in-out infinite",
-          animationDelay: "-12s",
-          filter: "blur(55px)",
-        }}
-      />
-      {/* Orb 5 - Deep blue center glow */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: "800px",
-          height: "800px",
-          top: "50%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          background:
-            "radial-gradient(circle, rgba(30,58,138,0.12) 0%, transparent 60%)",
-          animation: "aurora 25s ease-in-out infinite",
-          filter: "blur(60px)",
-        }}
-      />
+      <div className="space-y-4">
+        {/* Input */}
+        <div>
+          <Input
+            value={inputText}
+            onChange={handleChange}
+            onKeyDown={(e) => e.key === "Enter" && handleGenerate()}
+            placeholder="Enter URL or text..."
+            className="h-12 text-base border-gray-200 focus:border-blue-400 focus:ring-blue-400/20 rounded-xl"
+            data-ocid="hero.input"
+            aria-label="Enter URL or text to generate QR code"
+          />
+        </div>
+
+        {/* Generate button */}
+        <motion.button
+          type="button"
+          onClick={handleGenerate}
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          className="w-full h-12 rounded-xl font-semibold text-white text-base"
+          style={{
+            background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+          }}
+          data-ocid="hero.primary_button"
+        >
+          Generate QR Code
+        </motion.button>
+
+        {/* QR Preview */}
+        {qrDataUrl && (
+          <div className="flex flex-col items-center gap-3 pt-2">
+            <img
+              src={qrDataUrl}
+              alt="Generated QR Code"
+              className="w-48 h-48 rounded-xl border border-gray-100 shadow-sm"
+              data-ocid="hero.success_state"
+            />
+            <motion.button
+              type="button"
+              onClick={handleDownload}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 transition-colors"
+              data-ocid="hero.secondary_button"
+            >
+              <Download className="w-4 h-4" />
+              Download QR Code
+            </motion.button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-// ── Live QR Preview Widget ───────────────────────────────────────────────────
-function LiveQRPreview({ onGenerateClick }: { onGenerateClick: () => void }) {
-  const [qrInput, setQrInput] = useState(
-    "https://qr-generator-and-pdf-converter-8y9.caffeine.xyz",
-  );
-  const [qrDataUrl, setQrDataUrl] = useState("");
-
-  useEffect(() => {
-    const text = encodeURIComponent(qrInput || "hello");
-    setQrDataUrl(
-      `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${text}&color=60A5FA&bgcolor=0d1b4b`,
-    );
-  }, [qrInput]);
-
-  return (
-    <motion.div
-      style={{
-        background: "rgba(255,255,255,0.04)",
-        backdropFilter: "blur(20px)",
-        border: "1px solid rgba(99,179,237,0.25)",
-        borderRadius: "20px",
-        padding: "24px",
-        animation: "neon-border 3s ease-in-out infinite",
-      }}
-      data-ocid="hero.panel"
-      animate={{ y: [0, -6, 0] }}
-      transition={{
-        duration: 3.5,
-        repeat: Number.POSITIVE_INFINITY,
-        ease: "easeInOut",
-      }}
-    >
-      <p
-        className="text-xs font-bold uppercase tracking-widest mb-3 text-center"
-        style={{ color: "#93c5fd" }}
-      >
-        ✨ Live QR Preview
-      </p>
-
-      <Input
-        value={qrInput}
-        onChange={(e) => setQrInput(e.target.value)}
-        placeholder="Type anything to see QR update..."
-        className="mb-5 text-sm rounded-xl border-white/10 bg-white/5 text-white placeholder:text-white/30 focus:border-blue-400/50"
-        data-ocid="hero.input"
-      />
-
-      {qrDataUrl && (
-        <div className="flex justify-center mb-5">
-          <div
-            className="rounded-2xl overflow-hidden"
-            style={{
-              border: "2px solid rgba(99,179,237,0.4)",
-              boxShadow:
-                "0 0 20px rgba(59,130,246,0.35), 0 0 40px rgba(59,130,246,0.15)",
-            }}
-          >
-            <img
-              src={qrDataUrl}
-              alt="Live QR Code Preview"
-              className="w-[180px] h-[180px] block"
-            />
-          </div>
-        </div>
-      )}
-
-      <button
-        type="button"
-        onClick={onGenerateClick}
-        className="w-full text-white font-semibold px-6 py-3 rounded-xl text-base transition-all duration-200 hover:scale-[1.02] active:scale-95"
-        style={{
-          background: "linear-gradient(135deg, #2563eb, #7c3aed)",
-          boxShadow:
-            "0 0 20px rgba(59,130,246,0.4), 0 4px 16px rgba(124,58,237,0.3)",
-          animation: "pulse-glow 2.5s ease-in-out infinite",
-        }}
-        data-ocid="hero.primary_button"
-      >
-        Generate QR Code
-      </button>
-    </motion.div>
-  );
-}
-
-// ── Tool Card with 3D Tilt ───────────────────────────────────────────────────
-const TOOL_GRADIENTS = [
-  "linear-gradient(135deg, #1e40af, #3b82f6)", // blue
-  "linear-gradient(135deg, #5b21b6, #7c3aed)", // purple
-  "linear-gradient(135deg, #065f46, #10b981)", // teal
-  "linear-gradient(135deg, #92400e, #f59e0b)", // orange
-  "linear-gradient(135deg, #831843, #ec4899)", // pink
+// ── Tool Card ────────────────────────────────────────────────────────────────
+const TOOL_ICONS_BG = [
+  "bg-blue-50 text-blue-600",
+  "bg-violet-50 text-violet-600",
+  "bg-emerald-50 text-emerald-600",
+  "bg-amber-50 text-amber-600",
+  "bg-pink-50 text-pink-600",
 ];
 
 function ToolCard({
   tool,
   index,
-  isActive,
-  onToggle,
+  onOpen,
 }: {
   tool: (typeof TOOLS)[number];
   index: number;
-  isActive: boolean;
-  onToggle: () => void;
+  onOpen: () => void;
 }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const [tilt, setTilt] = useState({ x: 0, y: 0 });
-  const [hovered, setHovered] = useState(false);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = cardRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    const cx = rect.left + rect.width / 2;
-    const cy = rect.top + rect.height / 2;
-    const dx = (e.clientX - cx) / (rect.width / 2);
-    const dy = (e.clientY - cy) / (rect.height / 2);
-    setTilt({ x: dy * -8, y: dx * 8 });
-  };
-
-  const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 });
-    setHovered(false);
-  };
-
   return (
     <motion.div
-      ref={cardRef}
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.06 }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        transform: `perspective(1000px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg)`,
-        transition: hovered ? "transform 0.05s ease" : "transform 0.4s ease",
-      }}
+      transition={{ delay: index * 0.05 }}
+      className="tool-card bg-white rounded-xl border border-gray-100 shadow-sm p-5 cursor-pointer"
+      onClick={onOpen}
       data-ocid={`tools.item.${index + 1}` as never}
     >
       <div
-        className="h-full flex flex-col rounded-2xl p-6 cursor-pointer transition-all duration-300"
-        style={{
-          background: isActive
-            ? "rgba(59,130,246,0.12)"
-            : hovered
-              ? "rgba(255,255,255,0.06)"
-              : "rgba(255,255,255,0.03)",
-          backdropFilter: "blur(20px)",
-          border: isActive
-            ? "1px solid rgba(99,179,237,0.6)"
-            : hovered
-              ? "1px solid rgba(99,179,237,0.35)"
-              : "1px solid rgba(255,255,255,0.08)",
-          boxShadow: hovered
-            ? "0 8px 32px rgba(59,130,246,0.2), 0 0 0 1px rgba(99,179,237,0.1)"
-            : "none",
-        }}
+        className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${TOOL_ICONS_BG[index % TOOL_ICONS_BG.length]}`}
       >
-        {/* Icon */}
-        <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center mb-4"
-          style={{ background: TOOL_GRADIENTS[index % TOOL_GRADIENTS.length] }}
-        >
-          <tool.icon className="w-5 h-5 text-white" />
-        </div>
-        {/* Title */}
-        <h3 className="font-bold text-base mb-2 text-white">{tool.title}</h3>
-        {/* Description */}
-        <p
-          className="text-sm mb-4 leading-relaxed flex-1"
-          style={{ color: "rgba(148,163,184,0.9)" }}
-        >
-          {tool.description}
-        </p>
-        {/* Button */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggle();
-          }}
-          className="w-full py-2 px-4 rounded-xl text-sm font-semibold transition-all duration-200 hover:scale-[1.02] active:scale-95"
-          style={{
-            background: isActive
-              ? "linear-gradient(135deg, #2563eb, #7c3aed)"
-              : "rgba(99,179,237,0.12)",
-            color: isActive ? "#fff" : "#93c5fd",
-            border: "1px solid rgba(99,179,237,0.3)",
-            boxShadow: isActive ? "0 0 16px rgba(59,130,246,0.35)" : "none",
-          }}
-          data-ocid={`tools.button.${index + 1}` as never}
-        >
-          {isActive ? "Close Tool" : "Open Tool"}
-          {!isActive && <ChevronDown className="w-3 h-3 inline ml-1" />}
-        </button>
+        <tool.icon className="w-5 h-5" />
       </div>
+      <h3 className="font-semibold text-sm text-gray-900 mb-1">{tool.title}</h3>
+      <p className="text-xs text-gray-500 leading-relaxed mb-3">
+        {tool.description}
+      </p>
+      <button
+        type="button"
+        className="text-xs font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+        data-ocid={`tools.button.${index + 1}` as never}
+      >
+        Open Tool →
+      </button>
     </motion.div>
   );
 }
 
 // ── Constants ────────────────────────────────────────────────────────────────
-
 const TOOLS = [
   {
     id: "qr-code-maker",
@@ -1028,7 +518,6 @@ const TOOLS = [
     title: "QR Code Maker",
     description:
       "Generate QR codes from URLs, text, or any content. Download and share instantly.",
-    emoji: "📱",
   },
   {
     id: "pdf-converter",
@@ -1036,7 +525,6 @@ const TOOLS = [
     title: "PDF Converter",
     description:
       "Convert images and text files into professional PDF documents in seconds.",
-    emoji: "📄",
   },
   {
     id: "pdf-to-image",
@@ -1044,7 +532,6 @@ const TOOLS = [
     title: "PDF to Image",
     description:
       "Transform every page of your PDF into high-quality PNG images.",
-    emoji: "🖼️",
   },
   {
     id: "text-to-pdf",
@@ -1052,7 +539,6 @@ const TOOLS = [
     title: "Text to PDF",
     description:
       "Paste any plain text and convert it to a clean, formatted PDF document.",
-    emoji: "📝",
   },
   {
     id: "image-to-pdf",
@@ -1060,7 +546,33 @@ const TOOLS = [
     title: "Image to PDF",
     description:
       "Merge multiple images into a single, organized PDF file with one click.",
-    emoji: "🗂️",
+  },
+];
+
+const WHY_CHOOSE_US = [
+  {
+    emoji: "⚡",
+    title: "Fast Processing",
+    desc: "Instant results with zero wait time. No server uploads needed.",
+    color: "bg-blue-50 text-blue-600",
+  },
+  {
+    emoji: "🔒",
+    title: "100% Privacy",
+    desc: "Your files never leave your device. All processing is local.",
+    color: "bg-violet-50 text-violet-600",
+  },
+  {
+    emoji: "🆓",
+    title: "Free Forever",
+    desc: "Completely free with no hidden fees, subscriptions, or limits.",
+    color: "bg-emerald-50 text-emerald-600",
+  },
+  {
+    emoji: "📱",
+    title: "Works on Any Device",
+    desc: "Fully responsive on desktop, tablet, and mobile browsers.",
+    color: "bg-amber-50 text-amber-600",
   },
 ];
 
@@ -1075,7 +587,7 @@ const HOW_IT_WORKS = [
     icon: Zap,
     step: "02",
     title: "Convert Instantly",
-    desc: "Our tool processes everything instantly in your browser — no uploads to servers, no waiting.",
+    desc: "Our tool processes everything instantly in your browser — no uploads to servers.",
   },
   {
     icon: Download,
@@ -1085,51 +597,24 @@ const HOW_IT_WORKS = [
   },
 ];
 
-const WHY_CHOOSE_US_NEW = [
-  {
-    emoji: "⚡",
-    title: "Fast Processing",
-    desc: "Instant results with zero wait time. No server uploads needed.",
-    gradient: "linear-gradient(135deg, #1e40af, #3b82f6)",
-  },
-  {
-    emoji: "🔒",
-    title: "100% Privacy",
-    desc: "Your files never leave your device. All processing is local.",
-    gradient: "linear-gradient(135deg, #5b21b6, #7c3aed)",
-  },
-  {
-    emoji: "🆓",
-    title: "Free Forever",
-    desc: "Completely free with no hidden fees, subscriptions, or limits.",
-    gradient: "linear-gradient(135deg, #065f46, #10b981)",
-  },
-  {
-    emoji: "📱",
-    title: "Works on Any Device",
-    desc: "Fully responsive on desktop, tablet, and mobile browsers.",
-    gradient: "linear-gradient(135deg, #831843, #ec4899)",
-  },
-];
-
 const FEATURES = [
   {
     icon: Download,
     title: "Instant Download",
     desc: "Get your files immediately with one click. No waiting, no queues.",
-    color: "#60a5fa",
+    colorClass: "bg-blue-50 text-blue-600",
   },
   {
     icon: Share2,
     title: "Easy Sharing",
     desc: "Share QR codes and documents directly via the Web Share API or clipboard.",
-    color: "#a78bfa",
+    colorClass: "bg-violet-50 text-violet-600",
   },
   {
     icon: Shield,
     title: "100% Private",
     desc: "All processing happens in your browser. Your files never leave your device.",
-    color: "#34d399",
+    colorClass: "bg-emerald-50 text-emerald-600",
   },
 ];
 
@@ -1164,11 +649,7 @@ const ToolComponents: Record<string, React.FC> = {
 
 // ── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
-  const [showWelcome, setShowWelcome] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeSection, setActiveSection] = useState<
-    "home" | "tools" | "contact"
-  >("home");
   const [activeTool, setActiveTool] = useState<string | null>(null);
   const [contactForm, setContactForm] = useState({
     name: "",
@@ -1179,18 +660,17 @@ export default function App() {
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
 
-  const scrollTo = (section: "home" | "tools" | "contact") => {
-    setActiveSection(section);
+  const scrollTo = (section: string) => {
     setMobileMenuOpen(false);
     const el = document.getElementById(section);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
-  const toggleTool = (toolId: string) => {
-    setActiveTool((prev) => (prev === toolId ? null : toolId));
+  const openTool = (toolId: string) => {
+    setActiveTool(toolId);
     setTimeout(() => {
       document
-        .getElementById(`tool-${toolId}`)
+        .getElementById("tool-panel")
         ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
   };
@@ -1208,962 +688,629 @@ export default function App() {
     setContactForm({ name: "", email: "", message: "" });
   };
 
-  const handleGenerateQR = () => {
-    scrollTo("tools");
-    toggleTool("qr-code-maker");
-  };
-
   const ActiveToolComponent = activeTool ? ToolComponents[activeTool] : null;
 
   return (
-    <div
-      className="min-h-screen font-sans relative"
-      style={{ background: "#0a0f2c" }}
-    >
-      <AuroraBackground />
+    <div className="min-h-screen bg-[#F8FAFC] font-sans">
       <ClickEffects />
       <Toaster position="top-right" />
 
-      {/* Welcome Splash */}
-      <AnimatePresence>
-        {showWelcome && <WelcomeSplash onDone={() => setShowWelcome(false)} />}
-      </AnimatePresence>
-
-      {/* Main site */}
-      {!showWelcome && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-          className="relative min-h-screen"
-          style={{ zIndex: 1 }}
-        >
-          {/* Navbar */}
-          <header
-            className="sticky top-0 z-50"
-            style={{
-              background: "rgba(10,15,44,0.75)",
-              backdropFilter: "blur(20px)",
-              borderBottom: "1px solid rgba(255,255,255,0.08)",
-            }}
-            data-ocid="nav.panel"
+      {/* ── Navbar ── */}
+      <header
+        className="sticky top-0 z-50 bg-white border-b border-gray-100"
+        data-ocid="nav.panel"
+      >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+          {/* Logo */}
+          <button
+            type="button"
+            className="flex items-center"
+            onClick={() => scrollTo("home")}
+            data-ocid="nav.link"
           >
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-              <button
-                type="button"
-                className="flex items-center"
-                onClick={() => scrollTo("home")}
-                data-ocid="nav.link"
-              >
-                <img
-                  src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
-                  alt="QR & PDF Tools Logo"
-                  className="h-9 w-auto object-contain logo-glow"
-                  style={{ filter: "brightness(0) invert(1)" }}
-                />
-              </button>
+            <img
+              src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
+              alt="QR & PDF Tools Logo"
+              className="h-8 w-auto object-contain"
+            />
+          </button>
 
-              {/* Desktop nav */}
-              <nav className="hidden md:flex items-center gap-6">
+          {/* Desktop nav */}
+          <nav
+            className="hidden md:flex items-center gap-6"
+            aria-label="Main navigation"
+          >
+            {(["home", "tools", "contact"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => scrollTo(s)}
+                className="capitalize text-sm font-medium text-gray-600 hover:text-blue-600 transition-colors"
+                data-ocid={`nav.${s}.link` as never}
+              >
+                {s}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => scrollTo("home")}
+              className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-all hover:scale-105 active:scale-95"
+              style={{
+                background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+              }}
+              data-ocid="nav.primary_button"
+            >
+              Generate QR
+            </button>
+          </nav>
+
+          {/* Mobile hamburger */}
+          <button
+            type="button"
+            className="md:hidden p-2 rounded-lg text-gray-500 hover:text-gray-700 transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle navigation menu"
+            data-ocid="nav.toggle"
+          >
+            {mobileMenuOpen ? (
+              <X className="w-5 h-5" />
+            ) : (
+              <Menu className="w-5 h-5" />
+            )}
+          </button>
+        </div>
+
+        {/* Mobile menu */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="md:hidden overflow-hidden bg-white border-t border-gray-100"
+            >
+              <div className="px-4 py-3 flex flex-col gap-1">
                 {(["home", "tools", "contact"] as const).map((s) => (
                   <button
                     key={s}
                     type="button"
                     onClick={() => scrollTo(s)}
-                    className="capitalize text-sm font-medium transition-all duration-200"
-                    style={{
-                      color:
-                        activeSection === s
-                          ? "#60a5fa"
-                          : "rgba(148,163,184,0.8)",
-                      textShadow:
-                        activeSection === s
-                          ? "0 0 12px rgba(96,165,250,0.5)"
-                          : "none",
-                    }}
-                    data-ocid={`nav.${s}.link` as never}
+                    className="capitalize text-sm font-medium text-gray-700 text-left py-2.5 px-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    data-ocid={`nav.mobile.${s}.link` as never}
                   >
                     {s}
                   </button>
                 ))}
-                <button
-                  type="button"
-                  className="px-4 py-1.5 rounded-lg text-sm font-semibold text-white transition-all duration-200 hover:scale-105 active:scale-95"
-                  style={{
-                    background: "linear-gradient(135deg, #2563eb, #7c3aed)",
-                    boxShadow: "0 0 16px rgba(59,130,246,0.4)",
-                  }}
-                  onClick={() => scrollTo("tools")}
-                  data-ocid="nav.primary_button"
-                >
-                  Get Started
-                </button>
-              </nav>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </header>
 
-              {/* Mobile menu button */}
-              <button
-                type="button"
-                className="md:hidden p-2 rounded-lg transition-colors"
-                style={{ color: "rgba(148,163,184,0.8)" }}
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                data-ocid="nav.toggle"
-              >
-                {mobileMenuOpen ? (
-                  <X className="w-5 h-5" />
-                ) : (
-                  <Menu className="w-5 h-5" />
-                )}
-              </button>
+      <main>
+        {/* ── Section 1: Hero + Inline QR Tool ── */}
+        <section
+          id="home"
+          className="py-10 sm:py-14 px-4"
+          data-ocid="hero.section"
+        >
+          <div className="max-w-lg mx-auto text-center">
+            {/* Small heading */}
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">
+              Free QR Code Generator
+            </h1>
+            <p className="text-sm text-gray-400 mb-6">
+              Fast • Secure • No Login Required
+            </p>
+
+            {/* Inline QR Tool Widget */}
+            <HeroQRWidget />
+          </div>
+        </section>
+
+        {/* ── Section 2: All Tools Grid ── */}
+        <section
+          id="tools"
+          className="py-14 sm:py-16 px-4 bg-white border-t border-gray-100"
+          data-ocid="tools.section"
+        >
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8"
+            >
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                All Tools
+              </h2>
+              <p className="text-sm text-gray-500">
+                Five powerful tools, completely free.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+              {TOOLS.map((tool, i) => (
+                <ToolCard
+                  key={tool.id}
+                  tool={tool}
+                  index={i}
+                  onOpen={() => openTool(tool.id)}
+                />
+              ))}
             </div>
 
-            {/* Mobile menu */}
+            {/* Tool panel */}
             <AnimatePresence>
-              {mobileMenuOpen && (
+              {activeTool && ActiveToolComponent && (
                 <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  className="md:hidden overflow-hidden"
-                  style={{
-                    background: "rgba(10,15,44,0.95)",
-                    borderTop: "1px solid rgba(255,255,255,0.06)",
-                  }}
+                  id="tool-panel"
+                  key={activeTool}
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 8 }}
+                  transition={{ duration: 0.2 }}
+                  className="mt-4"
+                  data-ocid="tools.panel"
                 >
-                  <div className="px-4 py-4 flex flex-col gap-1">
-                    {(["home", "tools", "contact"] as const).map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => scrollTo(s)}
-                        className="capitalize text-sm font-medium text-left py-2.5 px-3 rounded-lg transition-all duration-200"
-                        style={{ color: "rgba(148,163,184,0.9)" }}
-                        data-ocid={`nav.mobile.${s}.link` as never}
-                      >
-                        {s}
-                      </button>
-                    ))}
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8 relative">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTool(null)}
+                      className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50 transition-colors"
+                      aria-label="Close tool"
+                      data-ocid="tools.close_button"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <ActiveToolComponent />
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
-          </header>
+          </div>
+        </section>
 
-          <main>
-            {/* ── Hero Section ── */}
-            <section id="home" className="py-20 lg:py-28 relative">
-              <div className="max-w-6xl mx-auto px-4 sm:px-6">
-                <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-                  {/* Left column */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 24 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    {/* Badge */}
-                    <motion.span
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1 }}
-                      className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full mb-6"
-                      style={{
-                        background: "rgba(59,130,246,0.12)",
-                        color: "#93c5fd",
-                        border: "1px solid rgba(99,179,237,0.3)",
-                        animation: "badge-pulse 2.5s ease-in-out infinite",
-                      }}
-                    >
-                      <Zap className="w-3 h-3" />
-                      Free Online Tools
-                    </motion.span>
-
-                    <h1 className="font-extrabold text-3xl sm:text-4xl lg:text-5xl leading-tight mb-4">
-                      <span className="gradient-text-animate">
-                        Free QR Code Generator
-                      </span>
-                      <br />
-                      <span style={{ color: "rgba(255,255,255,0.9)" }}>
-                        &amp; PDF Tools
-                      </span>
-                    </h1>
-
-                    <p
-                      className="text-lg mb-2 leading-relaxed"
-                      style={{ color: "rgba(148,163,184,0.8)" }}
-                    >
-                      Generate QR codes, convert PDFs, transform images — all
-                      free.
-                    </p>
-                    <p
-                      className="font-bold text-base mb-8"
-                      style={{
-                        background: "linear-gradient(90deg, #60a5fa, #a78bfa)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                      }}
-                    >
-                      ⚡ Fast, Secure &amp; Easy
-                    </p>
-
-                    {/* Primary CTA */}
-                    <motion.button
-                      type="button"
-                      onClick={handleGenerateQR}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.96 }}
-                      className="inline-flex items-center gap-2 text-white font-semibold px-8 py-4 rounded-xl text-base"
-                      style={{
-                        background: "linear-gradient(135deg, #2563eb, #7c3aed)",
-                        boxShadow:
-                          "0 0 30px rgba(59,130,246,0.5), 0 4px 20px rgba(124,58,237,0.35)",
-                        animation: "pulse-glow 2.5s ease-in-out infinite",
-                      }}
-                      data-ocid="hero.primary_button"
-                    >
-                      Generate QR Code Now
-                      <ArrowRight className="w-4 h-4" />
-                    </motion.button>
-                  </motion.div>
-
-                  {/* Right column — Live QR Preview */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.15 }}
-                  >
-                    <LiveQRPreview onGenerateClick={handleGenerateQR} />
-                  </motion.div>
-                </div>
-              </div>
-            </section>
-
-            {/* ── Tools Grid Section ── */}
-            <section
-              id="tools"
-              className="py-20 relative"
-              style={{
-                background: "rgba(0,0,0,0.15)",
-                borderTop: "1px solid rgba(255,255,255,0.05)",
-                borderBottom: "1px solid rgba(255,255,255,0.05)",
-              }}
+        {/* ── Section 3: Why Choose Us ── */}
+        <section className="py-14 sm:py-16 px-4 bg-[#F8FAFC] border-t border-gray-100">
+          <div className="max-w-5xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8"
             >
-              <div className="max-w-6xl mx-auto px-4 sm:px-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                Why Choose Us
+              </h2>
+              <p className="text-sm text-gray-500">
+                Everything you need, nothing you don't.
+              </p>
+            </motion.div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {WHY_CHOOSE_US.map((item, i) => (
                 <motion.div
-                  initial={{ opacity: 0, y: 20 }}
+                  key={item.title}
+                  initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
-                  className="text-center mb-12"
+                  transition={{ delay: i * 0.07 }}
+                  className="tool-card bg-white rounded-xl border border-gray-100 shadow-sm p-5 text-center"
+                  data-ocid={`why.item.${i + 1}` as never}
                 >
-                  <p
-                    className="text-xs font-bold uppercase tracking-widest mb-3"
-                    style={{ color: "#60a5fa" }}
+                  <div
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3 ${item.color}`}
                   >
-                    — Powerful Tools —
-                  </p>
-                  <h2
-                    className="font-bold text-3xl sm:text-4xl mb-3"
-                    style={{
-                      background:
-                        "linear-gradient(90deg, #60a5fa, #a78bfa, #34d399)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    Choose Your Tool
-                  </h2>
-                  <p
-                    className="text-lg max-w-2xl mx-auto"
-                    style={{ color: "rgba(148,163,184,0.75)" }}
-                  >
-                    Five powerful tools, zero cost. Select a tool below to get
-                    started instantly.
+                    <span className="text-xl">{item.emoji}</span>
+                  </div>
+                  <h3 className="font-semibold text-sm text-gray-900 mb-1">
+                    {item.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    {item.desc}
                   </p>
                 </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-8">
-                  {TOOLS.map((tool, i) => (
-                    <ToolCard
-                      key={tool.id}
-                      tool={tool}
-                      index={i}
-                      isActive={activeTool === tool.id}
-                      onToggle={() => toggleTool(tool.id)}
-                    />
-                  ))}
+        {/* ── Section 4: How It Works ── */}
+        <section className="py-14 sm:py-16 px-4 bg-white border-t border-gray-100">
+          <div className="max-w-3xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8"
+            >
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                How It Works
+              </h2>
+              <p className="text-sm text-gray-500">
+                Three simple steps to get your result
+              </p>
+            </motion.div>
+
+            <div className="grid sm:grid-cols-3 gap-6">
+              {HOW_IT_WORKS.map((step, i) => (
+                <motion.div
+                  key={step.step}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  className="text-center"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3">
+                    <step.icon className="w-5 h-5" />
+                  </div>
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-500">
+                    Step {step.step}
+                  </span>
+                  <h3 className="font-semibold text-sm text-gray-900 mt-1 mb-1">
+                    {step.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 leading-relaxed">
+                    {step.desc}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Section 5: Feature Strip ── */}
+        <section className="py-10 px-4 bg-[#F8FAFC] border-t border-gray-100">
+          <div className="max-w-3xl mx-auto">
+            <div className="grid sm:grid-cols-3 gap-5">
+              {FEATURES.map((feat, i) => (
+                <motion.div
+                  key={feat.title}
+                  initial={{ opacity: 0, y: 10 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.06 }}
+                  className="flex gap-3 items-start"
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${feat.colorClass}`}
+                  >
+                    <feat.icon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-900 mb-0.5">
+                      {feat.title}
+                    </h4>
+                    <p className="text-xs text-gray-500 leading-relaxed">
+                      {feat.desc}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── Bottom CTA ── */}
+        <section className="py-14 px-4 bg-white border-t border-gray-100 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="max-w-md mx-auto"
+          >
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">
+              Start Creating QR Codes Now
+            </h2>
+            <p className="text-sm text-gray-500 mb-6">
+              Free, fast, and works entirely in your browser.
+            </p>
+            <motion.button
+              type="button"
+              onClick={() => scrollTo("home")}
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="inline-flex items-center gap-2 text-white font-semibold px-8 py-3.5 rounded-xl text-base"
+              style={{
+                background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+              }}
+              data-ocid="cta.primary_button"
+            >
+              Generate QR Code
+            </motion.button>
+          </motion.div>
+        </section>
+
+        {/* ── Contact Section ── */}
+        <section
+          id="contact"
+          className="py-14 sm:py-16 px-4 bg-[#F8FAFC] border-t border-gray-100"
+        >
+          <div className="max-w-md mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-8"
+            >
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-1">
+                Contact Us
+              </h2>
+              <p className="text-sm text-gray-500">
+                Have a question or feedback? We'd love to hear from you.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sm:p-8"
+            >
+              <form onSubmit={handleContactSubmit} className="space-y-4">
+                <div>
+                  <Label
+                    htmlFor="contact-name"
+                    className="mb-1.5 block text-sm text-gray-700"
+                  >
+                    Name
+                  </Label>
+                  <Input
+                    id="contact-name"
+                    placeholder="Your name"
+                    value={contactForm.name}
+                    onChange={(e) =>
+                      setContactForm((p) => ({ ...p, name: e.target.value }))
+                    }
+                    data-ocid="contact.input"
+                  />
                 </div>
-
-                {/* Expanded tool panel */}
-                <AnimatePresence>
-                  {activeTool && ActiveToolComponent && (
-                    <motion.div
-                      id={`tool-${activeTool}`}
-                      key={activeTool}
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div
-                        className="rounded-2xl p-6 sm:p-8"
-                        style={{
-                          background: "rgba(255,255,255,0.04)",
-                          backdropFilter: "blur(20px)",
-                          border: "1px solid rgba(99,179,237,0.2)",
-                          boxShadow: "0 0 40px rgba(59,130,246,0.1)",
-                        }}
-                        data-ocid="tools.panel"
-                      >
-                        <ActiveToolComponent />
-                      </div>
-                    </motion.div>
+                <div>
+                  <Label
+                    htmlFor="contact-email"
+                    className="mb-1.5 block text-sm text-gray-700"
+                  >
+                    Email
+                  </Label>
+                  <Input
+                    id="contact-email"
+                    type="email"
+                    placeholder="your@email.com"
+                    value={contactForm.email}
+                    onChange={(e) =>
+                      setContactForm((p) => ({ ...p, email: e.target.value }))
+                    }
+                    data-ocid="contact.input"
+                  />
+                </div>
+                <div>
+                  <Label
+                    htmlFor="contact-message"
+                    className="mb-1.5 block text-sm text-gray-700"
+                  >
+                    Message
+                  </Label>
+                  <Textarea
+                    id="contact-message"
+                    placeholder="How can we help?"
+                    rows={4}
+                    value={contactForm.message}
+                    onChange={(e) =>
+                      setContactForm((p) => ({ ...p, message: e.target.value }))
+                    }
+                    data-ocid="contact.textarea"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  className="w-full font-semibold rounded-xl"
+                  style={{
+                    background: "linear-gradient(135deg, #3B82F6, #60A5FA)",
+                    border: "none",
+                  }}
+                  disabled={contactLoading}
+                  data-ocid="contact.submit_button"
+                >
+                  {contactLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Message"
                   )}
-                </AnimatePresence>
-              </div>
-            </section>
+                </Button>
+              </form>
+            </motion.div>
+          </div>
+        </section>
 
-            {/* ── Why Choose Us ── */}
-            <section className="py-20 relative">
-              <div className="max-w-6xl mx-auto px-4 sm:px-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="text-center mb-12"
-                >
-                  <p
-                    className="text-xs font-bold uppercase tracking-widest mb-3"
-                    style={{ color: "#a78bfa" }}
-                  >
-                    — Why Us —
-                  </p>
-                  <h2
-                    className="font-bold text-3xl sm:text-4xl mb-3"
-                    style={{
-                      background: "linear-gradient(90deg, #a78bfa, #60a5fa)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    Why Choose Us
-                  </h2>
-                  <p
-                    className="text-lg max-w-2xl mx-auto"
-                    style={{ color: "rgba(148,163,184,0.75)" }}
-                  >
-                    Everything you need, nothing you don't. Built for speed,
-                    privacy, and simplicity.
-                  </p>
-                </motion.div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                  {WHY_CHOOSE_US_NEW.map((item, i) => (
-                    <motion.div
-                      key={item.title}
-                      initial={{ opacity: 0, y: 16 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.08 }}
-                      whileHover={{ y: -4 }}
-                      className="rounded-2xl p-6 text-center transition-all duration-300 cursor-default"
-                      style={{
-                        background: "rgba(255,255,255,0.03)",
-                        backdropFilter: "blur(20px)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                      }}
-                      onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.border =
-                          "1px solid rgba(99,179,237,0.3)";
-                        (e.currentTarget as HTMLElement).style.boxShadow =
-                          "0 8px 32px rgba(59,130,246,0.15)";
-                      }}
-                      onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.border =
-                          "1px solid rgba(255,255,255,0.07)";
-                        (e.currentTarget as HTMLElement).style.boxShadow =
-                          "none";
-                      }}
-                      data-ocid={`why.item.${i + 1}` as never}
-                    >
-                      <div
-                        className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-4"
-                        style={{ background: item.gradient }}
-                      >
-                        <span className="text-2xl">{item.emoji}</span>
-                      </div>
-                      <h3 className="font-semibold text-base mb-2 text-white">
-                        {item.title}
-                      </h3>
-                      <p
-                        className="text-sm leading-relaxed"
-                        style={{ color: "rgba(148,163,184,0.8)" }}
-                      >
-                        {item.desc}
-                      </p>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* ── How It Works ── */}
-            <section
-              className="py-20"
-              style={{
-                background: "rgba(0,0,0,0.1)",
-                borderTop: "1px solid rgba(255,255,255,0.05)",
-                borderBottom: "1px solid rgba(255,255,255,0.05)",
-              }}
+        {/* ── SEO Accordion ── */}
+        <section className="py-12 px-4 bg-white border-t border-gray-100">
+          <div className="max-w-2xl mx-auto">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
             >
-              <div className="max-w-6xl mx-auto px-4 sm:px-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="text-center mb-12"
-                >
-                  <h2
-                    className="font-bold text-3xl sm:text-4xl mb-3"
-                    style={{
-                      background: "linear-gradient(90deg, #34d399, #60a5fa)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
+              <Accordion type="single" collapsible className="w-full space-y-2">
+                {SEO_CONTENT.map((item) => (
+                  <AccordionItem
+                    key={item.value}
+                    value={item.value}
+                    className="bg-white rounded-xl border border-gray-100 px-5"
                   >
-                    How It Works
-                  </h2>
-                  <p
-                    className="text-lg"
-                    style={{ color: "rgba(148,163,184,0.75)" }}
+                    <AccordionTrigger className="font-semibold text-sm text-gray-900 hover:no-underline py-4">
+                      {item.trigger}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm text-gray-500 leading-relaxed pb-4">
+                      {item.content}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </motion.div>
+          </div>
+        </section>
+      </main>
+
+      {/* ── Footer ── */}
+      <footer className="py-10 bg-gray-900 border-t border-gray-800">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mb-8">
+            {/* Brand */}
+            <div className="md:col-span-2">
+              <img
+                src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
+                alt="QR & PDF Tools Logo"
+                className="h-8 w-auto object-contain mb-3"
+                style={{ filter: "brightness(0) invert(1)" }}
+              />
+              <p className="text-xs text-gray-400 max-w-xs leading-relaxed">
+                Free online tools for QR code generation and PDF conversion.
+                Works entirely in your browser with no data collection.
+              </p>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h5 className="font-semibold text-sm text-gray-300 mb-3">
+                Company
+              </h5>
+              <ul className="space-y-2">
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => scrollTo("contact")}
+                    className="text-xs text-gray-400 hover:text-white transition-colors"
                   >
-                    Three simple steps to get your result
-                  </p>
-                </motion.div>
-
-                <div className="grid sm:grid-cols-3 gap-8">
-                  {HOW_IT_WORKS.map((step, i) => (
-                    <motion.div
-                      key={step.step}
-                      initial={{ opacity: 0, y: 16 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.1 }}
-                      className="text-center"
-                    >
-                      <div
-                        className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4"
-                        style={{
-                          background:
-                            "linear-gradient(135deg, rgba(37,99,235,0.3), rgba(124,58,237,0.3))",
-                          border: "1px solid rgba(99,179,237,0.2)",
-                        }}
+                    Contact
+                  </button>
+                </li>
+                <li>
+                  <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
+                    <DialogTrigger asChild>
+                      <button
+                        type="button"
+                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                        data-ocid="footer.privacy.open_modal_button"
                       >
-                        <step.icon
-                          className="w-6 h-6"
-                          style={{ color: "#60a5fa" }}
-                        />
-                      </div>
-                      <span
-                        className="text-xs font-bold uppercase tracking-widest"
-                        style={{ color: "#a78bfa" }}
-                      >
-                        Step {step.step}
-                      </span>
-                      <h3 className="font-semibold text-lg mt-1 mb-2 text-white">
-                        {step.title}
-                      </h3>
-                      <p
-                        className="text-sm leading-relaxed"
-                        style={{ color: "rgba(148,163,184,0.75)" }}
-                      >
-                        {step.desc}
-                      </p>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* ── Feature Strip ── */}
-            <section className="py-14">
-              <div className="max-w-6xl mx-auto px-4 sm:px-6">
-                <div className="grid sm:grid-cols-3 gap-6">
-                  {FEATURES.map((feat) => (
-                    <motion.div
-                      key={feat.title}
-                      initial={{ opacity: 0, y: 10 }}
-                      whileInView={{ opacity: 1, y: 0 }}
-                      viewport={{ once: true }}
-                      className="flex gap-4 items-start"
-                    >
-                      <div
-                        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{
-                          background: `${feat.color}18`,
-                          border: `1px solid ${feat.color}30`,
-                        }}
-                      >
-                        <feat.icon
-                          className="w-5 h-5"
-                          style={{ color: feat.color }}
-                        />
-                      </div>
-                      <div>
-                        <h4 className="font-semibold text-base mb-1 text-white">
-                          {feat.title}
-                        </h4>
-                        <p
-                          className="text-sm"
-                          style={{ color: "rgba(148,163,184,0.75)" }}
-                        >
-                          {feat.desc}
+                        Privacy Policy
+                      </button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="font-bold">
+                          Privacy Policy
+                        </DialogTitle>
+                        <DialogDescription>
+                          Last updated: {new Date().getFullYear()}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
+                        <p>
+                          <strong>No Data Collection.</strong> We do not
+                          collect, store, or share any personal data or files.
+                          All processing happens entirely within your browser.
+                        </p>
+                        <p>
+                          <strong>Google Analytics.</strong> We use Google
+                          Analytics (measurement ID: G-X56VJ2MNZQ) to understand
+                          how visitors use our site.
+                        </p>
+                        <p>
+                          <strong>Cookies.</strong> We use only the analytical
+                          cookies set by Google Analytics.
+                        </p>
+                        <p>
+                          <strong>Third-Party Services.</strong> Apart from
+                          Google Analytics, we do not integrate any third-party
+                          services that collect user data.
                         </p>
                       </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </section>
-
-            {/* ── Bottom CTA Section ── */}
-            <section
-              className="py-20 text-center relative"
-              style={{
-                background: "rgba(0,0,0,0.12)",
-                borderTop: "1px solid rgba(255,255,255,0.05)",
-              }}
-            >
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="max-w-2xl mx-auto px-4"
-              >
-                <h2
-                  className="font-bold text-3xl sm:text-4xl mb-4"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, #60a5fa, #a78bfa, #34d399)",
-                    backgroundSize: "200% auto",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    animation: "shimmer 4s linear infinite",
-                  }}
-                >
-                  Start Creating QR Codes Now
-                </h2>
-                <p
-                  className="text-lg mb-8"
-                  style={{ color: "rgba(148,163,184,0.75)" }}
-                >
-                  Free, fast, and works entirely in your browser.
-                </p>
-                <motion.button
-                  type="button"
-                  onClick={handleGenerateQR}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.96 }}
-                  className="inline-flex items-center gap-2 text-white font-semibold px-10 py-4 rounded-xl text-lg"
-                  style={{
-                    background: "linear-gradient(135deg, #2563eb, #7c3aed)",
-                    boxShadow:
-                      "0 0 30px rgba(59,130,246,0.5), 0 4px 20px rgba(124,58,237,0.35)",
-                  }}
-                  data-ocid="cta.primary_button"
-                >
-                  Generate QR Code
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
-              </motion.div>
-            </section>
-
-            {/* ── Contact Section ── */}
-            <section id="contact" className="py-20">
-              <div className="max-w-xl mx-auto px-4 sm:px-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="text-center mb-10"
-                >
-                  <h2
-                    className="font-bold text-3xl sm:text-4xl mb-3"
-                    style={{
-                      background: "linear-gradient(90deg, #60a5fa, #a78bfa)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    Contact Us
-                  </h2>
-                  <p style={{ color: "rgba(148,163,184,0.75)" }}>
-                    Have a question or feedback? We'd love to hear from you.
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="rounded-2xl p-6 sm:p-8"
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    backdropFilter: "blur(20px)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                  }}
-                >
-                  <form onSubmit={handleContactSubmit} className="space-y-5">
-                    <div>
-                      <Label
-                        htmlFor="contact-name"
-                        className="mb-1.5 block text-white"
-                      >
-                        Name
-                      </Label>
-                      <Input
-                        id="contact-name"
-                        placeholder="Your name"
-                        value={contactForm.name}
-                        onChange={(e) =>
-                          setContactForm((p) => ({
-                            ...p,
-                            name: e.target.value,
-                          }))
-                        }
-                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-400/50"
-                        data-ocid="contact.input"
-                      />
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="contact-email"
-                        className="mb-1.5 block text-white"
-                      >
-                        Email
-                      </Label>
-                      <Input
-                        id="contact-email"
-                        type="email"
-                        placeholder="your@email.com"
-                        value={contactForm.email}
-                        onChange={(e) =>
-                          setContactForm((p) => ({
-                            ...p,
-                            email: e.target.value,
-                          }))
-                        }
-                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-400/50"
-                        data-ocid="contact.input"
-                      />
-                    </div>
-                    <div>
-                      <Label
-                        htmlFor="contact-message"
-                        className="mb-1.5 block text-white"
-                      >
-                        Message
-                      </Label>
-                      <Textarea
-                        id="contact-message"
-                        placeholder="How can we help?"
-                        rows={5}
-                        value={contactForm.message}
-                        onChange={(e) =>
-                          setContactForm((p) => ({
-                            ...p,
-                            message: e.target.value,
-                          }))
-                        }
-                        className="bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-blue-400/50"
-                        data-ocid="contact.textarea"
-                      />
-                    </div>
-                    <Button
-                      type="submit"
-                      className="rounded-xl w-full font-semibold border-0"
-                      style={{
-                        background: "linear-gradient(135deg, #2563eb, #7c3aed)",
-                        boxShadow: "0 0 20px rgba(59,130,246,0.3)",
-                      }}
-                      disabled={contactLoading}
-                      data-ocid="contact.submit_button"
-                    >
-                      {contactLoading ? "Sending..." : "Send Message"}
-                    </Button>
-                  </form>
-                </motion.div>
-              </div>
-            </section>
-
-            {/* ── SEO Content Section ── */}
-            <section
-              className="py-20"
-              style={{
-                borderTop: "1px solid rgba(255,255,255,0.05)",
-                background: "rgba(0,0,0,0.08)",
-              }}
-            >
-              <div className="max-w-3xl mx-auto px-4 sm:px-6">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  className="text-center mb-12"
-                >
-                  <h2
-                    className="font-bold text-3xl sm:text-4xl mb-3"
-                    style={{
-                      background: "linear-gradient(90deg, #60a5fa, #a78bfa)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    Learn More About Our Tools
-                  </h2>
-                  <p
-                    className="text-lg"
-                    style={{ color: "rgba(148,163,184,0.75)" }}
-                  >
-                    Understand how our tools work and why they're the best
-                    choice for your needs.
-                  </p>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                >
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="w-full space-y-2"
-                  >
-                    {SEO_CONTENT.map((item) => (
-                      <AccordionItem
-                        key={item.value}
-                        value={item.value}
-                        className="rounded-xl px-5"
-                        style={{
-                          background: "rgba(255,255,255,0.03)",
-                          border: "1px solid rgba(255,255,255,0.07)",
-                        }}
-                      >
-                        <AccordionTrigger className="font-semibold text-base hover:no-underline py-4 text-white">
-                          {item.trigger}
-                        </AccordionTrigger>
-                        <AccordionContent
-                          className="text-sm leading-relaxed pb-4"
-                          style={{ color: "rgba(148,163,184,0.8)" }}
+                      <div className="flex justify-end pt-2">
+                        <Button
+                          size="sm"
+                          onClick={() => setPrivacyOpen(false)}
+                          data-ocid="footer.privacy.close_button"
                         >
-                          {item.content}
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </motion.div>
-              </div>
-            </section>
-          </main>
-
-          {/* ── Footer ── */}
-          <footer
-            className="py-12"
-            style={{
-              background: "rgba(5,8,24,0.95)",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-            }}
-          >
-            <div className="max-w-6xl mx-auto px-4 sm:px-6">
-              <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-8 mb-8">
-                {/* Brand */}
-                <div className="md:col-span-2">
-                  <img
-                    src="/assets/generated/qrpdf-logo-transparent.dim_320x80.png"
-                    alt="QR & PDF Tools Logo"
-                    className="h-9 w-auto object-contain mb-4"
-                    style={{ filter: "brightness(0) invert(1)" }}
-                  />
-                  <p
-                    className="text-xs max-w-xs leading-relaxed"
-                    style={{ color: "rgba(99,179,237,0.65)" }}
-                  >
-                    Free online tools for QR code generation and PDF conversion.
-                    Works entirely in your browser with no data collection.
-                  </p>
-                </div>
-
-                {/* Company */}
-                <div>
-                  <h5
-                    className="font-semibold text-sm mb-3"
-                    style={{ color: "#a78bfa" }}
-                  >
-                    Company
-                  </h5>
-                  <ul className="space-y-2">
-                    <li>
+                          Close
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </li>
+                <li>
+                  <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
+                    <DialogTrigger asChild>
                       <button
                         type="button"
-                        onClick={() => scrollTo("contact")}
-                        className="text-xs transition-colors hover:text-white"
-                        style={{ color: "rgba(148,163,184,0.6)" }}
+                        className="text-xs text-gray-400 hover:text-white transition-colors"
+                        data-ocid="footer.terms.open_modal_button"
                       >
-                        About Us
+                        Terms and Conditions
                       </button>
-                    </li>
-                    <li>
-                      <button
-                        type="button"
-                        onClick={() => scrollTo("contact")}
-                        className="text-xs transition-colors hover:text-white"
-                        style={{ color: "rgba(148,163,184,0.6)" }}
-                      >
-                        Contact
-                      </button>
-                    </li>
-                    <li>
-                      <Dialog open={privacyOpen} onOpenChange={setPrivacyOpen}>
-                        <DialogTrigger asChild>
-                          <button
-                            type="button"
-                            className="text-xs transition-colors hover:text-white"
-                            style={{ color: "rgba(148,163,184,0.6)" }}
-                            data-ocid="footer.privacy.open_modal_button"
-                          >
-                            Privacy Policy
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle className="font-bold">
-                              Privacy Policy
-                            </DialogTitle>
-                            <DialogDescription>
-                              Last updated: {new Date().getFullYear()}
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
-                            <p>
-                              <strong>No Data Collection.</strong> We do not
-                              collect, store, or share any personal data or
-                              files. All processing happens entirely within your
-                              browser.
-                            </p>
-                            <p>
-                              <strong>Google Analytics.</strong> We use Google
-                              Analytics (measurement ID: G-X56VJ2MNZQ) to
-                              understand how visitors use our site.
-                            </p>
-                            <p>
-                              <strong>Cookies.</strong> We use only the
-                              analytical cookies set by Google Analytics.
-                            </p>
-                            <p>
-                              <strong>Third-Party Services.</strong> Apart from
-                              Google Analytics, we do not integrate any
-                              third-party services that collect user data.
-                            </p>
-                          </div>
-                          <div className="flex justify-end pt-2">
-                            <Button
-                              size="sm"
-                              onClick={() => setPrivacyOpen(false)}
-                              data-ocid="footer.privacy.close_button"
-                            >
-                              Close
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </li>
-                    <li>
-                      <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
-                        <DialogTrigger asChild>
-                          <button
-                            type="button"
-                            className="text-xs transition-colors hover:text-white"
-                            style={{ color: "rgba(148,163,184,0.6)" }}
-                            data-ocid="footer.terms.open_modal_button"
-                          >
-                            Terms and Conditions
-                          </button>
-                        </DialogTrigger>
-                        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
-                          <DialogHeader>
-                            <DialogTitle className="font-bold">
-                              Terms and Conditions
-                            </DialogTitle>
-                            <DialogDescription>
-                              Last updated: {new Date().getFullYear()}
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
-                            <p>
-                              <strong>Acceptance of Terms.</strong> By using QR
-                              &amp; PDF Tools, you agree to these Terms and
-                              Conditions.
-                            </p>
-                            <p>
-                              <strong>Use of Tools.</strong> Our tools are
-                              provided for personal, non-commercial use.
-                            </p>
-                            <p>
-                              <strong>No Warranty.</strong> The tools are
-                              provided "as-is" without warranty of any kind,
-                              express or implied.
-                            </p>
-                            <p>
-                              <strong>Limitation of Liability.</strong> To the
-                              fullest extent permitted by law, we shall not be
-                              liable for any indirect or consequential damages.
-                            </p>
-                          </div>
-                          <div className="flex justify-end pt-2">
-                            <Button
-                              size="sm"
-                              onClick={() => setTermsOpen(false)}
-                              data-ocid="footer.terms.close_button"
-                            >
-                              Close
-                            </Button>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-
-              <div
-                className="border-t pt-6 text-center"
-                style={{ borderColor: "rgba(255,255,255,0.06)" }}
-              >
-                <p
-                  className="text-xs"
-                  style={{ color: "rgba(99,179,237,0.55)" }}
-                >
-                  &copy; {new Date().getFullYear()}. MADE BY B.VEDANT &mdash;{" "}
-                  <a
-                    href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== "undefined" ? window.location.hostname : "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-purple-300 transition-colors"
-                    style={{ color: "rgba(167,139,250,0.65)" }}
-                  >
-                    Built with caffeine.ai
-                  </a>
-                </p>
-              </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle className="font-bold">
+                          Terms and Conditions
+                        </DialogTitle>
+                        <DialogDescription>
+                          Last updated: {new Date().getFullYear()}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="text-sm text-muted-foreground space-y-4 leading-relaxed">
+                        <p>
+                          <strong>Acceptance of Terms.</strong> By using QR
+                          &amp; PDF Tools, you agree to these Terms and
+                          Conditions.
+                        </p>
+                        <p>
+                          <strong>Use of Tools.</strong> Our tools are provided
+                          for personal, non-commercial use.
+                        </p>
+                        <p>
+                          <strong>Limitation of Liability.</strong> To the
+                          fullest extent permitted by law, we shall not be
+                          liable for any indirect or consequential damages.
+                        </p>
+                      </div>
+                      <div className="flex justify-end pt-2">
+                        <Button
+                          size="sm"
+                          onClick={() => setTermsOpen(false)}
+                          data-ocid="footer.terms.close_button"
+                        >
+                          Close
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </li>
+              </ul>
             </div>
-          </footer>
-        </motion.div>
-      )}
+          </div>
+
+          <div className="border-t border-gray-800 pt-6 text-center">
+            <p className="text-xs text-gray-500">
+              &copy; {new Date().getFullYear()}. MADE BY B.VEDANT &mdash;{" "}
+              <a
+                href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(typeof window !== "undefined" ? window.location.hostname : "")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-400 hover:text-gray-200 transition-colors"
+              >
+                Built with caffeine.ai
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
+
       <SideGames />
     </div>
   );
