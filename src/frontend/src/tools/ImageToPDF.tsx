@@ -1,5 +1,6 @@
 import ReviewModal from "@/components/ReviewModal";
 import { Button } from "@/components/ui/button";
+import { jsPDF } from "jspdf";
 import {
   Download,
   GripVertical,
@@ -10,33 +11,6 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-
-// jsPDF is loaded via CDN script tag in index.html
-function getJsPDF() {
-  const Cls =
-    (window as any).jspdf?.jsPDF ??
-    (window as any).jsPDF ??
-    (window as any).jspdf;
-  if (!Cls)
-    throw new Error("jsPDF library not loaded. Please refresh and try again.");
-  return Cls as new (options?: {
-    orientation?: string;
-    unit?: string;
-    format?: string | number[];
-  }) => {
-    addImage(
-      imageData: string,
-      format: string,
-      x: number,
-      y: number,
-      width: number,
-      height: number,
-    ): void;
-    addPage(): void;
-    output(type: "blob"): Blob;
-    internal: { pageSize: { getWidth(): number; getHeight(): number } };
-  };
-}
 
 interface PreviewEntry {
   id: string;
@@ -81,8 +55,7 @@ export default function ImageToPDF() {
     }
     setLoading(true);
     try {
-      const JsPDF = getJsPDF();
-      const pdf = new JsPDF();
+      const pdf = new jsPDF();
       let first = true;
       for (const entry of entries) {
         if (!first) pdf.addPage();
@@ -102,13 +75,9 @@ export default function ImageToPDF() {
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       toast.success("PDF created successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("ImageToPDF error:", err);
-      toast.error(
-        err?.message?.includes("not loaded")
-          ? err.message
-          : "Failed to create PDF. Please try again.",
-      );
+      toast.error("Failed to create PDF. Please try again.");
     } finally {
       setLoading(false);
     }

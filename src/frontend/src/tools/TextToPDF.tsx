@@ -3,31 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { jsPDF } from "jspdf";
 import { Download, FileOutput, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-
-// jsPDF is loaded via CDN script tag in index.html
-function getJsPDF() {
-  const Cls =
-    (window as any).jspdf?.jsPDF ??
-    (window as any).jsPDF ??
-    (window as any).jspdf;
-  if (!Cls)
-    throw new Error("jsPDF library not loaded. Please refresh and try again.");
-  return Cls as new (options?: {
-    orientation?: string;
-    unit?: string;
-    format?: string | number[];
-  }) => {
-    setFont(name: string, style?: string): void;
-    setFontSize(size: number): void;
-    text(text: string | string[], x: number, y: number): void;
-    splitTextToSize(text: string, maxWidth: number): string[];
-    output(type: "blob"): Blob;
-    internal: { pageSize: { getWidth(): number; getHeight(): number } };
-  };
-}
 
 export default function TextToPDF() {
   const [title, setTitle] = useState("");
@@ -43,8 +22,7 @@ export default function TextToPDF() {
     }
     setLoading(true);
     try {
-      const JsPDF = getJsPDF();
-      const pdf = new JsPDF();
+      const pdf = new jsPDF();
       const pageW = pdf.internal.pageSize.getWidth();
       let y = 20;
       if (title.trim()) {
@@ -64,13 +42,9 @@ export default function TextToPDF() {
       const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       toast.success("PDF created successfully!");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("TextToPDF error:", err);
-      toast.error(
-        err?.message?.includes("not loaded")
-          ? err.message
-          : "Failed to convert text. Please try again.",
-      );
+      toast.error("Failed to convert text. Please try again.");
     } finally {
       setLoading(false);
     }

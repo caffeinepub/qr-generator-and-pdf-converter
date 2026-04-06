@@ -1,34 +1,15 @@
 import ReviewModal from "@/components/ReviewModal";
 import { Button } from "@/components/ui/button";
 import { Download, ImageIcon, Loader2, Upload } from "lucide-react";
+import * as pdfjsLib from "pdfjs-dist";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
 
-// pdfjs-dist is loaded via CDN script tag in index.html (window.pdfjsLib)
-function getPdfjsLib() {
-  const lib = (window as any).pdfjsLib;
-  if (!lib) throw new Error("PDF.js library not loaded");
-  return lib as {
-    version: string;
-    GlobalWorkerOptions: { workerSrc: string };
-    getDocument(src: { data: ArrayBuffer }): {
-      promise: Promise<{
-        numPages: number;
-        getPage(n: number): Promise<{
-          getViewport(opts: { scale: number }): {
-            width: number;
-            height: number;
-          };
-          render(params: {
-            canvas?: HTMLCanvasElement;
-            canvasContext: CanvasRenderingContext2D;
-            viewport: { width: number; height: number };
-          }): { promise: Promise<void> };
-        }>;
-      }>;
-    };
-  };
-}
+// Use the bundled worker from pdfjs-dist
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.mjs",
+  import.meta.url,
+).toString();
 
 export default function PDFToImage() {
   const [loading, setLoading] = useState(false);
@@ -56,10 +37,6 @@ export default function PDFToImage() {
     }
     setLoading(true);
     try {
-      const pdfjsLib = getPdfjsLib();
-      pdfjsLib.GlobalWorkerOptions.workerSrc =
-        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
       const arrayBuffer = await pdfFile.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       const pages: string[] = [];
@@ -71,7 +48,7 @@ export default function PDFToImage() {
         canvas.width = viewport.width;
         canvas.height = viewport.height;
         const ctx = canvas.getContext("2d")!;
-        await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+        await page.render({ canvasContext: ctx, viewport }).promise;
         pages.push(canvas.toDataURL("image/png"));
       }
 
